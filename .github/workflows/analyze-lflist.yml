@@ -30,3 +30,6 @@ jobs:
       with:
         name: comparison-analysis
         path: comparison_result.txt
+        
+    env:
+      TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Pasar el token secreto al script
