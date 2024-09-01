@@ -4,7 +4,7 @@
 OUTPUT_FILE="lflist_result.txt"
 
 # Ruta al archivo lflist.conf en el repositorio clonado
-LFLIST_FILE="external-repo/lflist.conf"
+LFLIST_FILE="repo-koishi/lflist.conf"
 
 # Verificar que el archivo existe
 if [ ! -f "$LFLIST_FILE" ]; then
