@@ -27,5 +27,8 @@ echo "" >> $OUTPUT_FILE
 echo "Listas encontradas:" >> $OUTPUT_FILE
 echo "$LISTS" >> $OUTPUT_FILE
 
+# Mostrar el resultado en los logs de GitHub Actions
+cat $OUTPUT_FILE
+
 echo "Análisis completado. Resultados guardados en $OUTPUT_FILE."
 
