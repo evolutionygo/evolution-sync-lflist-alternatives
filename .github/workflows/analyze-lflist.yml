@@ -1,4 +1,3 @@
-name: Analyze lflist.conf
 name: Analyze and Compare lflist.conf
 
 on:
