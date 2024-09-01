@@ -15,7 +15,9 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Clone external repository
-      run: git clone https://github.com/fallenstardust/YGOMobile-cn-ko-en/tree/master/mobile/assets/data/conf repo-koishi
+      run: |
+        git clone https://github.com/fallenstardust/YGOMobile-cn-ko-en repo-koishi
+        cp repo-koishi/mobile/assets/data/conf/lflist.conf lflist.conf
 
     - name: Analyze lflist.conf
       run: bash scripts/analyze_lflist.sh
@@ -25,5 +27,6 @@ jobs:
       with:
         name: lflist-analysis
         path: lflist_result.txt
+
 
 
