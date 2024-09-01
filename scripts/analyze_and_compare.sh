@@ -3,7 +3,8 @@
 # Variables para el script
 OUTPUT_FILE="comparison_result.txt"  # Archivo de salida para el informe
 LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
-DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist"  # URL del repo de destino, usa el token para autenticación
+DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk"  # URL del repo de destino, usa el token para autenticación
+DEST_REPO_DIR="koishi-Iflist"
 
 # Verificar que el archivo lflist.conf existe
 if [ ! -f "$LFLIST_FILE" ]; then
@@ -60,14 +61,21 @@ if [ ! -z "$NEW_LISTS" ]; then
 fi
 
 # Clonar el repositorio de destino directamente en la raíz
-git clone "$DEST_REPO_URL" .
+git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
 if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
 
-# Mover el archivo finalizado y hacer push
-mv "$LFLIST_FILE" .
+# Mover el archivo finalizado al repositorio clonado y hacer push
+mv "$LFLIST_FILE" "$DEST_REPO_DIR/"
+cd "$DEST_REPO_DIR"
+
+# Configurar Git
+git config user.name "GitHub Action"
+git config user.email "action@github.com"
+
+# Añadir, hacer commit y push
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main  # Ajusta la rama si es necesario
