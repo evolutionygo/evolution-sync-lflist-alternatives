@@ -80,6 +80,3 @@ git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main  # Ajusta la rama si es necesario
 
-# Mostrar el resultado en los logs
-cat $OUTPUT_FILE
-
