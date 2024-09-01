@@ -3,7 +3,7 @@
 # Variables para el script
 OUTPUT_FILE="comparison_result.txt"  # Archivo de salida para el informe
 LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
-DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk"  # URL del repo de destino, usa el token para autenticación
+DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist"  # URL del repo de destino, usa el token para autenticación
 DEST_REPO_DIR="koishi-Iflist"
 
 # Verificar que el archivo lflist.conf existe
