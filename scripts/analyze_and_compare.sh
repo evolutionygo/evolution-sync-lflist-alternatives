@@ -12,53 +12,46 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
-# Extraer listas de lflist.conf
-LFLIST_CONTENT=$(grep -oP '^!\K[^\s]+' "$LFLIST_FILE")
+# Extraer la primera línea del archivo que contiene las listas
+INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE")
 
 # Inicializar el archivo de salida
 echo "Resultado de la comparación y adiciones:" > $OUTPUT_FILE
 echo "" >> $OUTPUT_FILE
 
-# Identificar la línea con las listas iniciales
-LIST_LINE=$(grep -nP '^#' "$LFLIST_FILE" | cut -d: -f1)
-
-# Verificar si LIST_LINE está vacío
-if [ -z "$LIST_LINE" ]; then
-    echo "Error: No se encontró una línea de listas en el archivo lflist.conf"
-    echo "Contenido del archivo lflist.conf:"
-    cat "$LFLIST_FILE"  # Mostrar el contenido del archivo para depurar
-    exit 1
-else
-    echo "Línea de listas encontrada en la línea: $LIST_LINE"
-fi
-
+# Variable para almacenar las nuevas listas sin el símbolo #
 NEW_LISTS=""
 
-# Iterar sobre los archivos .conf en el repositorio de comparación
+# Iterar sobre todos los archivos .conf en el repositorio de comparación
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
+        # Extraer la lista del archivo .conf actual que comienza con '!'
         ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
-        
+
         if [ -z "$ITEM" ]; then
             echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
             continue
         fi
 
-        if echo "$LFLIST_CONTENT" | grep -q "$ITEM"; then
-            echo "$ITEM de $conf_file ya se encuentra en lflist.conf" >> $OUTPUT_FILE
+        # Verificar si el item ya está en la lista inicial
+        if echo "$INITIAL_LISTS" | grep -q "\[$ITEM\]"; then
+            echo "$ITEM de $conf_file ya se encuentra en la lista inicial" >> $OUTPUT_FILE
         else
-            echo "$ITEM de $conf_file NO se encuentra en lflist.conf. Añadiendo..." >> $OUTPUT_FILE
-            NEW_LISTS="${NEW_LISTS}[${ITEM}]"
+            echo "$ITEM de $conf_file NO se encuentra en la lista inicial. Añadiendo..." >> $OUTPUT_FILE
+            NEW_LISTS="${NEW_LISTS}[$ITEM]"
         fi
     fi
 done
 
-# Añadir nuevas listas
+# Añadir las nuevas listas al final de la línea inicial
 if [ ! -z "$NEW_LISTS" ]; then
-    CURRENT_LISTS=$(sed -n "${LIST_LINE}p" "$LFLIST_FILE")
-    UPDATED_LISTS="${CURRENT_LISTS}${NEW_LISTS}"
-    sed -i "${LIST_LINE}s|.*|${UPDATED_LISTS}|" "$LFLIST_FILE"
+    UPDATED_LISTS="${INITIAL_LISTS}${NEW_LISTS}"
+    sed -i "1s|.*|${UPDATED_LISTS}|" "$LFLIST_FILE"
 fi
+
+# Verificar el contenido de la lista inicial después de la modificación
+echo "Lista inicial en lflist.conf después de la modificación:"
+sed -n '1p' "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
@@ -67,13 +60,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Mover el archivo al repositorio clonado
+# Mover el archivo modificado al repositorio clonado
 mv "$LFLIST_FILE" "$DEST_REPO_DIR/"
 cd "$DEST_REPO_DIR"
-
-# Verificar el contenido de la lista inicial en el archivo en el repositorio clonado
-echo "Lista inicial en lflist.conf en el repositorio clonado:"
-sed -n "${LIST_LINE}p" "$LFLIST_FILE"
 
 # Configurar Git
 git config user.name "GitHub Action"
