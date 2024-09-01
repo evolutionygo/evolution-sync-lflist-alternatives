@@ -1,0 +1,26 @@
+name: Analyze lflist.conf
+
+on:
+  push:
+    branches:
+      - main  # O la rama en la que deseas que se ejecute
+  workflow_dispatch:  # Permite ejecutar manualmente la acción desde la interfaz de GitHub
+
+jobs:
+  analyze-file:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Analyze lflist.conf
+      run: bash scripts/analyze_lflist.sh
+
+    - name: Upload result as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: lflist-analysis
+        path: lflist_result.txt
+
+
