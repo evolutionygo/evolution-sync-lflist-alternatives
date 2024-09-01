@@ -47,7 +47,7 @@ for conf_file in comparison-repo/*.conf; do
 done
 
 # Añadir nuevas listas
-if [ ! -z "$NEW_LISTS" ]; entonces
+if [ ! -z "$NEW_LISTS" ]; then
     CURRENT_LISTS=$(sed -n "${LIST_LINE}p" "$LFLIST_FILE")
     UPDATED_LISTS="${CURRENT_LISTS}${NEW_LISTS}"
     sed -i "${LIST_LINE}s|.*|${UPDATED_LISTS}|" "$LFLIST_FILE"
@@ -55,7 +55,7 @@ fi
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; entonces echo "Error: No se pudo clonar el repositorio de destino."
+if [ $? -ne 0 ]; then echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
 
