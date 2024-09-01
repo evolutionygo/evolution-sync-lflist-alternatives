@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Variables para el script
-OUTPUT_FILE="comparison_result.txt"  # Archivo de salida para el informe
-LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
-DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"  # URL del repo de destino, usa el token para autenticación
+OUTPUT_FILE="comparison_result.txt"
+LFLIST_FILE="lflist.conf"
+DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"
 DEST_REPO_DIR="koishi-Iflist"
 
 # Verificar que el archivo lflist.conf existe
@@ -12,27 +12,25 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
-# Extraer listas de lflist.conf, considerando listas que comienzan con '!'
+# Extraer listas de lflist.conf
 LFLIST_CONTENT=$(grep -oP '^!\K[^\s]+' "$LFLIST_FILE")
 
 # Inicializar el archivo de salida
 echo "Resultado de la comparación y adiciones:" > $OUTPUT_FILE
 echo "" >> $OUTPUT_FILE
 
-# Identificar la línea con las listas iniciales en el archivo lflist.conf
+# Identificar la línea con las listas iniciales
 LIST_LINE=$(grep -nP '^#' "$LFLIST_FILE" | cut -d: -f1)
 if [ -z "$LIST_LINE" ]; then
     echo "Error: No se encontró una línea de listas en el archivo lflist.conf"
     exit 1
 fi
 
-# Variable para almacenar las nuevas listas
 NEW_LISTS=""
 
-# Iterar sobre todos los archivos .conf en el repositorio de comparación
+# Iterar sobre los archivos .conf en el repositorio de comparación
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
-        # Extraer la lista del archivo .conf actual que comienza con '!'
         ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
         
         if [ -z "$ITEM" ]; then
@@ -40,43 +38,40 @@ for conf_file in comparison-repo/*.conf; do
             continue
         fi
 
-        # Comparar con las listas en lflist.conf
         if echo "$LFLIST_CONTENT" | grep -q "$ITEM"; then
             echo "$ITEM de $conf_file ya se encuentra en lflist.conf" >> $OUTPUT_FILE
         else
             echo "$ITEM de $conf_file NO se encuentra en lflist.conf. Añadiendo..." >> $OUTPUT_FILE
-            # Añadir la lista al final de lflist.conf
-            cat "$conf_file" >> "$LFLIST_FILE"
-            echo "" >> "$LFLIST_FILE"  # Añadir una línea en blanco para separar las entradas
-
-            # Añadir la lista a la sección inicial de listas
-            NEW_LISTS="${NEW_LISTS} [${ITEM}]"
+            NEW_LISTS="${NEW_LISTS}[${ITEM}]"
         fi
     fi
 done
 
-# Si hay nuevas listas, añadirlas a la línea inicial con las listas
+# Añadir nuevas listas
 if [ ! -z "$NEW_LISTS" ]; then
-    # Extraer la línea actual que contiene las listas
     CURRENT_LISTS=$(sed -n "${LIST_LINE}p" "$LFLIST_FILE")
-    
-    # Añadir las nuevas listas al final de la línea existente
     UPDATED_LISTS="${CURRENT_LISTS}${NEW_LISTS}"
-
-    # Reemplazar la línea en el archivo con la nueva línea actualizada
     sed -i "${LIST_LINE}s|.*|${UPDATED_LISTS}|" "$LFLIST_FILE"
 fi
 
-# Clonar el repositorio de destino directamente en la raíz
+# Verificar contenido antes de mover el archivo
+echo "Contenido de lflist.conf antes de moverlo al repositorio clonado:"
+cat "$LFLIST_FILE"
+
+# Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
 if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
 
-# Mover el archivo finalizado al repositorio clonado y hacer push
+# Mover el archivo al repositorio clonado
 mv "$LFLIST_FILE" "$DEST_REPO_DIR/"
 cd "$DEST_REPO_DIR"
+
+# Verificar el contenido del archivo en el repositorio clonado
+echo "Contenido de lflist.conf en el repositorio clonado antes del commit:"
+cat "$LFLIST_FILE"
 
 # Configurar Git
 git config user.name "GitHub Action"
@@ -85,5 +80,6 @@ git config user.email "action@github.com"
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
-git push origin main  # Ajusta la rama si es necesario
+git push origin main
+
 
