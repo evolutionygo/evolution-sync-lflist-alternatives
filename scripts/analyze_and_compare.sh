@@ -55,10 +55,10 @@ for conf_file in comparison-repo/*.conf; do
     fi
 done
 
-# Si hay nuevas listas, añadirlas a la línea de listas
-if [ ! -z "$NEW_LISTS" ]; entonces
+if [ ! -z "$NEW_LISTS" ]; then
     sed -i "${LIST_LINE}s/$/${NEW_LISTS}/" "$LFLIST_FILE"
 fi
+
 
 # Clonar el repositorio de destino directamente en la raíz
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
