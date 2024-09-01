@@ -25,8 +25,8 @@ NEW_LISTS=""
 # Iterar sobre todos los archivos .conf en el repositorio de comparación
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
-        # Extraer la lista del archivo .conf actual que comienza con '!'
-        ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
+        # Extraer la lista del archivo .conf actual que está en el formato #[nombre]
+        ITEM=$(grep -oP '^#\[\K[^\]]+' "$conf_file")
 
         if [ -z "$ITEM" ]; then
             echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
@@ -72,6 +72,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
