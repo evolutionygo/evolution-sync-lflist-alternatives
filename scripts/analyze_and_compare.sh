@@ -29,6 +29,12 @@ for conf_file in comparison-repo/*.conf; do
         # Extraer la lista del archivo .conf actual que está en el formato #[nombre]
         ITEM=$(grep -oP '^#\[\K[^\]]+' "$conf_file")
 
+        # Omitir ítems que contengan "KS" en su nombre
+        if [[ "$ITEM" == *KS* ]]; then
+            echo "Omitiendo $ITEM porque contiene 'KS'" >> $OUTPUT_FILE
+            continue
+        fi
+
         if [ -z "$ITEM" ]; then
             echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
             continue
@@ -86,6 +92,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
