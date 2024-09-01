@@ -11,8 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout this repository
       uses: actions/checkout@v3
+
+    - name: Clone external repository
+      run: git clone https://github.com/fallenstardust/YGOMobile-cn-ko-en/tree/master/mobile/assets/data/conf.git repo-koishi
 
     - name: Analyze lflist.conf
       run: bash scripts/analyze_lflist.sh

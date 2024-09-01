@@ -3,11 +3,20 @@
 # Archivo de salida
 OUTPUT_FILE="lflist_result.txt"
 
+# Ruta al archivo lflist.conf en el repositorio clonado
+LFLIST_FILE="external-repo/lflist.conf"
+
+# Verificar que el archivo existe
+if [ ! -f "$LFLIST_FILE" ]; then
+    echo "Error: No se encontró el archivo $LFLIST_FILE" > $OUTPUT_FILE
+    exit 1
+fi
+
 # Inicializar el archivo de salida
-echo "Analizando lflist.conf..." > $OUTPUT_FILE
+echo "Analizando $LFLIST_FILE..." > $OUTPUT_FILE
 
 # Contar y listar las listas en el archivo
-LISTS=$(grep -oP '\[\K[^\]]+' lflist.conf)
+LISTS=$(grep -oP '\[\K[^\]]+' "$LFLIST_FILE")
 
 # Contar el número de listas
 LIST_COUNT=$(echo "$LISTS" | wc -l)
