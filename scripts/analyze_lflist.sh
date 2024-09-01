@@ -4,7 +4,7 @@
 OUTPUT_FILE="lflist_result.txt"
 
 # Ruta al archivo lflist.conf en el repositorio clonado
-LFLIST_FILE="repo-koishi/lflist.conf"
+LFLIST_FILE="repo-koishi/mobile/assets/data/conf/lflist.conf"
 
 # Verificar que el archivo existe
 if [ ! -f "$LFLIST_FILE" ]; then
@@ -28,3 +28,4 @@ echo "Listas encontradas:" >> $OUTPUT_FILE
 echo "$LISTS" >> $OUTPUT_FILE
 
 echo "Análisis completado. Resultados guardados en $OUTPUT_FILE."
+
