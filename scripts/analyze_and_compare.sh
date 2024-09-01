@@ -21,7 +21,8 @@ echo "" >> $OUTPUT_FILE
 
 # Identificar la línea con las listas iniciales en el archivo lflist.conf
 LIST_LINE=$(grep -nP '^#' "$LFLIST_FILE" | cut -d: -f1)
-if [ -z "$LIST_LINE" ]; entonces echo "Error: No se encontró una línea de listas en el archivo lflist.conf"
+if [ -z "$LIST_LINE" ]; then
+    echo "Error: No se encontró una línea de listas en el archivo lflist.conf"
     exit 1
 fi
 
@@ -55,11 +56,13 @@ for conf_file in comparison-repo/*.conf; do
 done
 
 # Si hay nuevas listas, añadirlas a la línea de listas
-if [ ! -z "$NEW_LISTS" ]; entonces sed -i "${LIST_LINE}s/$/${NEW_LISTS}/" "$LFLIST_FILE"
+if [ ! -z "$NEW_LISTS" ]; then
+    sed -i "${LIST_LINE}s/$/${NEW_LISTS}/" "$LFLIST_FILE"
 fi
 
-# Mover el archivo finalizado a la carpeta lflist dentro del repositorio
-mv "$LFLIST_FILE" ./lflist/
+# Mover el archivo finalizado a la carpeta lflist
+mkdir -p lflist
+mv "$LFLIST_FILE" lflist/
 
 # Mostrar el resultado en los logs
 cat $OUTPUT_FILE
