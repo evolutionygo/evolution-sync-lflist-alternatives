@@ -60,5 +60,9 @@ if [ ! -z "$NEW_LISTS" ]; then
     sed -i "${LIST_LINE}s/$/${NEW_LISTS}/" "$LFLIST_FILE"
 fi
 
+# Mover el archivo finalizado a la carpeta lflist
+mkdir -p lflist
+mv "$LFLIST_FILE" lflist/
+
 # Mostrar el resultado en los logs
 cat $OUTPUT_FILE
