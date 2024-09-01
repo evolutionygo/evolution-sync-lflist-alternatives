@@ -40,8 +40,10 @@ for conf_file in comparison-repo/*.conf; do
         else
             echo "$ITEM de $conf_file NO se encuentra en la lista inicial. Añadiendo..." >> $OUTPUT_FILE
             NEW_LISTS="${NEW_LISTS}[$ITEM]"
-            # Añadir el contenido de la lista al final
-            NEW_CONTENT="${NEW_CONTENT}\n$(cat "$conf_file")"
+
+            # Copiar el contenido de la lista, excluyendo la línea que contiene `#[ ]`
+            CONTENT=$(sed '1d' "$conf_file")
+            NEW_CONTENT="${NEW_CONTENT}\n${CONTENT}"
         fi
     fi
 done
@@ -84,6 +86,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
