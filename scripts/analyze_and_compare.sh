@@ -5,6 +5,13 @@ OUTPUT_FILE="comparison_result.txt"
 
 # Ruta al archivo lflist.conf en el repositorio clonado
 LFLIST_FILE="lflist.conf"
+#!/bin/bash
+
+# Archivo de salida
+OUTPUT_FILE="comparison_result.txt"
+
+# Ruta al archivo lflist.conf en el repositorio clonado
+LFLIST_FILE="lflist.conf"
 
 # Verificar que el archivo lflist.conf existe
 if [ ! -f "$LFLIST_FILE" ]; then
@@ -12,8 +19,8 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
-# Extraer listas de lflist.conf
-LFLIST_CONTENT=$(grep -oP '\[\K[^\]]+' "$LFLIST_FILE")
+# Extraer listas de lflist.conf, considerando listas que comienzan con '!'
+LFLIST_CONTENT=$(grep -oP '^!\K[^\s]+' "$LFLIST_FILE")
 
 # Inicializar el archivo de salida
 echo "Resultado de la comparación:" > $OUTPUT_FILE
@@ -22,8 +29,8 @@ echo "" >> $OUTPUT_FILE
 # Iterar sobre todos los archivos .conf en el repositorio de comparación
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
-        # Extraer la lista del archivo .conf actual
-        ITEM=$(grep -oP '\[\K[^\]]+' "$conf_file")
+        # Extraer la lista del archivo .conf actual que comienza con '!'
+        ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
         
         if [ -z "$ITEM" ]; then
             echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
