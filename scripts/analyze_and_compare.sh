@@ -33,7 +33,7 @@ for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
         ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
         
-        if [ -z "$ITEM" ]; entonces echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
+        if [ -z "$ITEM" ]; then echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
             continue
         fi
 
