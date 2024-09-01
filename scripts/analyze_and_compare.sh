@@ -55,10 +55,17 @@ for conf_file in comparison-repo/*.conf; do
     fi
 done
 
+# Si hay nuevas listas, añadirlas a la línea inicial con las listas
 if [ ! -z "$NEW_LISTS" ]; then
-    sed -i "${LIST_LINE}s/$/${NEW_LISTS}/" "$LFLIST_FILE"
-fi
+    # Extraer la línea actual que contiene las listas
+    CURRENT_LISTS=$(sed -n "${LIST_LINE}p" "$LFLIST_FILE")
+    
+    # Añadir las nuevas listas al final de la línea existente
+    UPDATED_LISTS="${CURRENT_LISTS}${NEW_LISTS}"
 
+    # Reemplazar la línea en el archivo con la nueva línea actualizada
+    sed -i "${LIST_LINE}s|.*|${UPDATED_LISTS}|" "$LFLIST_FILE"
+fi
 
 # Clonar el repositorio de destino directamente en la raíz
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
