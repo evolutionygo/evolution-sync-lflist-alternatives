@@ -1,4 +1,5 @@
 name: Analyze lflist.conf
+name: Analyze and Compare lflist.conf
 
 on:
   push:
@@ -14,19 +15,19 @@ jobs:
     - name: Checkout this repository
       uses: actions/checkout@v3
 
-    - name: Clone external repository
+    - name: Clone lflist repository
       run: |
         git clone https://github.com/fallenstardust/YGOMobile-cn-ko-en repo-koishi
         cp repo-koishi/mobile/assets/data/conf/lflist.conf lflist.conf
 
-    - name: Analyze lflist.conf
-      run: bash scripts/analyze_lflist.sh
+    - name: Clone comparison repository
+      run: git clone https://github.com/termitaklk/lflist comparison-repo
+
+    - name: Analyze and Compare lflist.conf
+      run: bash scripts/analyze_and_compare.sh
 
     - name: Upload result as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: lflist-analysis
-        path: lflist_result.txt
-
-
-
+        name: comparison-analysis
+        path: comparison_result.txt
