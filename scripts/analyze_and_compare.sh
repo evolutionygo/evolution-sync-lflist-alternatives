@@ -21,9 +21,15 @@ echo "" >> $OUTPUT_FILE
 
 # Identificar la línea con las listas iniciales
 LIST_LINE=$(grep -nP '^#' "$LFLIST_FILE" | cut -d: -f1)
+
+# Verificar si LIST_LINE está vacío
 if [ -z "$LIST_LINE" ]; then
     echo "Error: No se encontró una línea de listas en el archivo lflist.conf"
+    echo "Contenido del archivo lflist.conf:"
+    cat "$LFLIST_FILE"  # Mostrar el contenido del archivo para depurar
     exit 1
+else
+    echo "Línea de listas encontrada en la línea: $LIST_LINE"
 fi
 
 NEW_LISTS=""
@@ -33,7 +39,8 @@ for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
         ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
         
-        if [ -z "$ITEM" ]; then echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
+        if [ -z "$ITEM" ]; then
+            echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
             continue
         fi
 
@@ -55,7 +62,8 @@ fi
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; then echo "Error: No se pudo clonar el repositorio de destino."
+if [ $? -ne 0 ]; then
+    echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
 
