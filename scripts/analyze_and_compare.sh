@@ -33,8 +33,7 @@ for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
         ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
         
-        if [ -z "$ITEM" ]; then
-            echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
+        if [ -z "$ITEM" ]; entonces echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
             continue
         fi
 
@@ -48,20 +47,15 @@ for conf_file in comparison-repo/*.conf; do
 done
 
 # Añadir nuevas listas
-if [ ! -z "$NEW_LISTS" ]; then
+if [ ! -z "$NEW_LISTS" ]; entonces
     CURRENT_LISTS=$(sed -n "${LIST_LINE}p" "$LFLIST_FILE")
     UPDATED_LISTS="${CURRENT_LISTS}${NEW_LISTS}"
     sed -i "${LIST_LINE}s|.*|${UPDATED_LISTS}|" "$LFLIST_FILE"
 fi
 
-# Verificar contenido antes de mover el archivo
-echo "Contenido de lflist.conf antes de moverlo al repositorio clonado:"
-cat "$LFLIST_FILE"
-
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; then
-    echo "Error: No se pudo clonar el repositorio de destino."
+if [ $? -ne 0 ]; entonces echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
 
@@ -69,9 +63,9 @@ fi
 mv "$LFLIST_FILE" "$DEST_REPO_DIR/"
 cd "$DEST_REPO_DIR"
 
-# Verificar el contenido del archivo en el repositorio clonado
-echo "Contenido de lflist.conf en el repositorio clonado antes del commit:"
-cat "$LFLIST_FILE"
+# Verificar el contenido de la lista inicial en el archivo en el repositorio clonado
+echo "Lista inicial en lflist.conf en el repositorio clonado:"
+sed -n "${LIST_LINE}p" "$LFLIST_FILE"
 
 # Configurar Git
 git config user.name "GitHub Action"
@@ -81,5 +75,6 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
