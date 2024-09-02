@@ -30,6 +30,9 @@ fi
 # Extraer la primera línea del archivo que contiene las listas y guardar en INITIAL_LISTS
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
+# Mostrar el contenido almacenado en INITIAL_LISTS
+echo "Contenido de INITIAL_LISTS: $INITIAL_LISTS"
+
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
 MATCHED_ITEMS=""
@@ -46,6 +49,7 @@ done <<< "$INITIAL_LISTS"
 echo "Ítems que cumplen con el año $CURRENT_YEAR: $MATCHED_ITEMS"
 
 # Mostrar todos los ítems que comienzan con '!'
+echo "Ítems que comienzan con '!':"
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 echo "$ITEMS_WITH_EXCLAMATION"
 
@@ -60,10 +64,10 @@ while IFS= read -r ITEM; do
     fi
 done <<< "$ITEMS_WITH_EXCLAMATION"
 
-# Recopilar los ítems de los archivos .conf, omitir los que contengan "KS" y organizarlos alfabéticamente
-ADDITIONAL_ITEMS=""
+# Comparar con los archivos .conf de otro repositorio y añadir los que no existan en lflist.conf
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
+        # Extraer la lista del archivo .conf actual que comienza con '!', manejando nombres con espacios
         ITEM=$(grep -oP '^!\K.*' "$conf_file")
         
         if [ -z "$ITEM" ]; then
@@ -71,24 +75,28 @@ for conf_file in comparison-repo/*.conf; do
             continue
         fi
 
+        # Omitir ítems que contengan "KS"
         if echo "$ITEM" | grep -q "KS"; then
             echo "Omitiendo $ITEM ya que contiene 'KS'"
             continue
         fi
 
-        if ! echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; then
-            ADDITIONAL_ITEMS="${ADDITIONAL_ITEMS} [${ITEM}]"
+        # Comparar con las listas en lflist.conf
+        if echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; then
+            echo "$ITEM de $conf_file ya se encuentra en lflist.conf"
+        else
+            echo "$ITEM de $conf_file NO se encuentra en lflist.conf. Añadiendo..."
+            # Añadir la lista al final de lflist.conf
             cat "$conf_file" >> "$LFLIST_FILE"
             echo "" >> "$LFLIST_FILE"  # Añadir una línea en blanco para separar las entradas
+
+            # Añadir la lista a la sección inicial de listas en la línea 1
+            NEW_LIST="${NEW_LIST} [${ITEM}]"
         fi
     fi
 done
 
-# Organizar alfabéticamente los ítems adicionales y asegurarse de que estén correctamente formateados
-SORTED_ADDITIONAL_ITEMS=$(echo "$ADDITIONAL_ITEMS" | tr ' ' '\n' | sort | tr '\n' ' ' | sed 's/^\s*//;s/\s*$//')
-NEW_LIST="${NEW_LIST}${SORTED_ADDITIONAL_ITEMS}"
-
-# Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos y organizados
+# Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos
 sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
 
 # Mostrar el contenido final del archivo lflist.conf
@@ -112,7 +120,7 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Keep only items that match the current year, add missing lists from external .conf files, omit those with 'KS', and organize alphabetically"
+git commit -m "Keep only items that match the current year and add missing lists from external .conf files, omitting those with 'KS' in the name"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
 
 
