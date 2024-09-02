@@ -22,7 +22,7 @@ fi
 
 # Clonar el repositorio de comparación
 git clone "$COMPARISON_REPO_URL" comparison-repo
-if [ $? -ne 0 ]; entonces
+if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de comparación."
     exit 1
 fi
