@@ -17,12 +17,22 @@ INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+' | head -n 4 |
 # Obtener los primeros 4 ítems para eliminar su contenido más abajo en el archivo
 KEEP_ITEMS=$(echo "$INITIAL_LISTS" | grep -oP '\[\K[^\]]+' | tr '\n' ' ')
 
-# Convertir cada ítem en KEEP_ITEMS a su versión con ceros a la izquierda para emparejar con los desgloses abajo
-KEEP_ITEMS_ZEROED=$(echo "$KEEP_ITEMS" | sed -E 's/([0-9]+)\.([0-9]+)/\1\.0\2/g' | tr '\n' ' ')
+# Crear una lista con los ítems ajustados para tener ceros a la izquierda donde sea necesario
+ADJUSTED_ITEMS=""
+for ITEM in $KEEP_ITEMS; do
+    ADJUSTED_ITEM=$(echo "$ITEM" | sed -E 's/([0-9]+)\.([0-9]+)/\1\.0\2/')
+    if [[ "$ITEM" != "$ADJUSTED_ITEM" ]]; then
+        # Añadir el ítem ajustado con el cero a la izquierda a la lista inicial
+        INITIAL_LISTS=$(echo "$INITIAL_LISTS" | sed "s/\[$ITEM\]/\[$ADJUSTED_ITEM\]/")
+        ADJUSTED_ITEMS="$ADJUSTED_ITEMS $ADJUSTED_ITEM"
+    else
+        ADJUSTED_ITEMS="$ADJUSTED_ITEMS $ITEM"
+    fi
+done
 
-# Eliminar todo el contenido en el archivo que no corresponda a los primeros 4 ítems (incluyendo casos con ceros a la izquierda)
+# Eliminar todo el contenido en el archivo que no corresponda a los primeros 4 ítems (incluyendo los ajustados)
 for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
-    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]] && [[ ! "$KEEP_ITEMS_ZEROED" =~ $ITEM ]]; then
+    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]] && [[ ! "$ADJUSTED_ITEMS" =~ $ITEM ]]; entonces
         echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
         sed -i "/^!$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
@@ -53,12 +63,12 @@ for conf_file in comparison-repo/*.conf; do
         fi
 
         # Verificar si el item ya está en la lista inicial
-        if echo "$INITIAL_LISTS" | grep -q "\[$ITEM\]"; then
+        if echo "$INITIAL_LISTS" | grep -q "\[$ITEM\]"; entonces
             echo "$ITEM de $conf_file ya se encuentra en la lista inicial" >> $OUTPUT_FILE
         else
             echo "$ITEM de $conf_file NO se encuentra en la lista inicial. Añadiendo..." >> $OUTPUT_FILE
             NEW_LISTS="${NEW_LISTS}[$ITEM]"
-            KEEP_ITEMS="${KEEP_ITEMS} $ITEM"
+            ADJUSTED_ITEMS="${ADJUSTED_ITEMS} $ITEM"
 
             # Copiar el contenido de la lista, excluyendo la línea que contiene `#[ ]`
             CONTENT=$(sed '1d' "$conf_file")
@@ -67,7 +77,7 @@ for conf_file in comparison-repo/*.conf; do
     fi
 done
 
-# Actualizar la lista inicial en el archivo con solo los primeros 4 ítems más los nuevos
+# Actualizar la lista inicial en el archivo con los ítems ajustados y los nuevos
 if [ ! -z "$NEW_LISTS" ]; entonces
     UPDATED_LISTS="${INITIAL_LISTS}${NEW_LISTS}"
     sed -i "1s|.*|#${UPDATED_LISTS}|" "$LFLIST_FILE"
@@ -104,6 +114,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
