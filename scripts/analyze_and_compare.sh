@@ -41,6 +41,26 @@ sed -n '1p' "$LFLIST_FILE"
 echo "Contenido final en lflist.conf:"
 tail -n 20 "$LFLIST_FILE"  # Mostrar las últimas 20 líneas para verificar el contenido añadido
 
+# Clonar el repositorio de destino
+git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
+if [ $? -ne 0 ]; then
+    echo "Error: No se pudo clonar el repositorio de destino."
+    exit 1
+fi
+
+# Mover el archivo modificado al repositorio clonado
+mv "$LFLIST_FILE" "$DEST_REPO_DIR/"
+cd "$DEST_REPO_DIR"
+
+# Configurar Git
+git config user.name "GitHub Action"
+git config user.email "action@github.com"
+
+# Añadir, hacer commit y push
+git add "$LFLIST_FILE"
+git commit -m "Keep only items with the current year"
+git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
