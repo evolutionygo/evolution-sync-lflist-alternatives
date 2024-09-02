@@ -84,8 +84,8 @@ for conf_file in comparison-repo/*.conf; do
     fi
 done
 
-# Organizar alfabéticamente los ítems adicionales teniendo en cuenta los espacios
-SORTED_ADDITIONAL_ITEMS=$(echo "$ADDITIONAL_ITEMS" | tr ' ' '\n' | sort | tr '\n' ' ')
+# Organizar alfabéticamente los ítems adicionales y asegurarse de que estén correctamente formateados
+SORTED_ADDITIONAL_ITEMS=$(echo "$ADDITIONAL_ITEMS" | tr ' ' '\n' | sort | tr '\n' ' ' | sed 's/^\s*//;s/\s*$//')
 NEW_LIST="${NEW_LIST}${SORTED_ADDITIONAL_ITEMS}"
 
 # Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos y organizados
@@ -114,6 +114,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items that match the current year, add missing lists from external .conf files, omit those with 'KS', and organize alphabetically"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
