@@ -4,7 +4,7 @@
 LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
 DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"  # URL del repo de destino, usa el token para autenticación
 DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
-COMPARISON_REPO_URL="https://github.com/termitaklk/lflist"  # URL del repositorio con archivos .conf
+COMPARISON_REPO_URL="https://github.com/usuario/comparison-repo.git"  # URL del repositorio con archivos .conf
 
 # Obtener el año actual
 CURRENT_YEAR=$(date +'%Y')
@@ -99,6 +99,22 @@ done
 # Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos
 sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
 
+# Ordenar los ítems en la lista inicial (línea 1) y en el archivo lflist.conf
+# Priorizar ítems que contienen 'TCG'
+SORTED_LIST=$(echo "$INITIAL_LISTS" | grep 'TCG' | sort -V)
+SORTED_LIST+=$(echo "$INITIAL_LISTS" | grep -v 'TCG' | sort -V)
+
+# Añadir prefijos numéricos
+SORTED_LIST_WITH_PREFIX=""
+COUNTER=0
+while IFS= read -r ITEM; do
+    SORTED_LIST_WITH_PREFIX="${SORTED_LIST_WITH_PREFIX}${COUNTER}.${ITEM}\n"
+    COUNTER=$((COUNTER + 1))
+done <<< "$SORTED_LIST"
+
+# Reemplazar la línea 1 y reordenar el contenido del archivo lflist.conf
+sed -i "1s|.*|${SORTED_LIST_WITH_PREFIX}|" "$LFLIST_FILE"
+
 # Mostrar el contenido final del archivo lflist.conf
 echo "Contenido final del archivo lflist.conf después de las modificaciones:"
 cat "$LFLIST_FILE"
@@ -120,34 +136,8 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Keep only items that match the current year and add missing lists from external .conf files, omitting those with 'KS' in the name"
+git commit -m "Sorted items numerically, prioritized TCG items, and added numerical prefixes"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
