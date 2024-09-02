@@ -43,7 +43,7 @@ sed -n '1p' "$LFLIST_FILE"
 
 # Verificar el contenido añadido al final del archivo
 echo "Contenido final en lflist.conf:"
-tail -n 20 "$LFLIST_FILE"  # Mostrar las últimas 20 líneas para verificar el contenido
+tail -n 20 "$LFLIST_FILE"  # Mostrar las últimas 20 líneas para verificar el contenido añadido
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
@@ -64,6 +64,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items with the current year"
 git push origin main
+
 
 
 
