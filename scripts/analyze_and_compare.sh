@@ -68,9 +68,17 @@ for conf_file in comparison-repo/*.conf; do
         if echo "$INITIAL_LISTS" | grep -q "\[$ITEM\]"; then
             echo "$ITEM de $conf_file ya se encuentra en la lista inicial" >> $OUTPUT_FILE
         else
-            echo "$ITEM de $conf_file NO se encuentra en la lista inicial. Añadiendo..." >> $OUTPUT_FILE
-            NEW_LISTS="${NEW_LISTS}[$ITEM]"
-            ADJUSTED_ITEMS="${ADJUSTED_ITEMS} $ITEM"
+            # Ajustar el nombre si se necesita un cero a la izquierda
+            ITEM_WITH_ZERO=$(echo "$ITEM" | sed -E 's/([0-9]+)\.([0-9]+)/\1\.0\2/')
+            if [[ "$ITEM" != "$ITEM_WITH_ZERO" ]]; then
+                echo "Añadiendo $ITEM_WITH_ZERO en lugar de $ITEM en la lista inicial" >> $OUTPUT_FILE
+                NEW_LISTS="${NEW_LISTS}[$ITEM_WITH_ZERO]"
+                ADJUSTED_ITEMS="${ADJUSTED_ITEMS} $ITEM_WITH_ZERO"
+            else
+                echo "$ITEM de $conf_file NO se encuentra en la lista inicial. Añadiendo..." >> $OUTPUT_FILE
+                NEW_LISTS="${NEW_LISTS}[$ITEM]"
+                ADJUSTED_ITEMS="${ADJUSTED_ITEMS} $ITEM"
+            fi
 
             # Copiar el contenido de la lista, excluyendo la línea que contiene `#[ ]`
             CONTENT=$(sed '1d' "$conf_file")
