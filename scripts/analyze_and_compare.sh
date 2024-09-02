@@ -22,9 +22,11 @@ INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 NEW_LIST="#"
 MATCHED_ITEMS=""
 for ITEM in $INITIAL_LISTS; do
+    echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
+        echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
 done
 
@@ -65,6 +67,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items with the current year"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
