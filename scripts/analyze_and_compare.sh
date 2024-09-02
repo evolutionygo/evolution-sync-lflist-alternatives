@@ -30,74 +30,73 @@ fi
 # Extraer la primera línea del archivo que contiene las listas y guardar en INITIAL_LISTS
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
+# Mostrar el contenido almacenado en INITIAL_LISTS
+echo "Contenido de INITIAL_LISTS: $INITIAL_LISTS"
+
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
 MATCHED_ITEMS=""
 while IFS= read -r ITEM; do
+    echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
+        echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
 done <<< "$INITIAL_LISTS"
 
+# Mostrar los ítems que cumplen con el año actual
+echo "Ítems que cumplen con el año $CURRENT_YEAR: $MATCHED_ITEMS"
+
 # Mostrar todos los ítems que comienzan con '!'
+echo "Ítems que comienzan con '!':"
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
+echo "$ITEMS_WITH_EXCLAMATION"
 
 # Filtrar y mantener solo los ítems que corresponden al año actual
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para obtener el nombre del ítem
     if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; then
-        echo "Manteniendo $ITEM"
+        echo "Manteniendo $ITEM"  # Log para mostrar los ítems que se mantienen
     else
+        echo "Eliminando $ITEM del archivo lflist.conf"
         sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
 done <<< "$ITEMS_WITH_EXCLAMATION"
 
-# Recopilar y organizar alfabéticamente los ítems de los archivos .conf
+# Recopilar los ítems de los archivos .conf, omitir los que contengan "KS" y organizarlos alfabéticamente
 ADDITIONAL_ITEMS=""
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
         ITEM=$(grep -oP '^!\K.*' "$conf_file")
         
         if [ -z "$ITEM" ]; then
+            echo "No se encontró una lista válida en $conf_file"
             continue
         fi
 
         if echo "$ITEM" | grep -q "KS"; then
+            echo "Omitiendo $ITEM ya que contiene 'KS'"
             continue
         fi
 
         if ! echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; then
-            cat "$conf_file" >> "$LFLIST_FILE"
-            echo "" >> "$LFLIST_FILE"
             ADDITIONAL_ITEMS="${ADDITIONAL_ITEMS} [${ITEM}]"
+            cat "$conf_file" >> "$LFLIST_FILE"
+            echo "" >> "$LFLIST_FILE"  # Añadir una línea en blanco para separar las entradas
         fi
     fi
 done
 
-# Organizar alfabéticamente los ítems adicionales
+# Organizar alfabéticamente los ítems adicionales y añadirlos a la lista inicial
 SORTED_ADDITIONAL_ITEMS=$(echo "$ADDITIONAL_ITEMS" | tr ' ' '\n' | sort | tr '\n' ' ')
-
-# Añadir los ítems organizados alfabéticamente al principio de la lista
 NEW_LIST="${NEW_LIST}${SORTED_ADDITIONAL_ITEMS}"
 
-# Ordenar los ítems en la lista inicial (línea 1) y en el archivo lflist.conf
-SORTED_LIST=$(echo "$NEW_LIST" | grep 'TCG' | sort -V)
-SORTED_LIST+=$(echo "$NEW_LIST" | grep -v 'TCG' | sort -V)
-
-# Añadir prefijos numéricos al nombre dentro de los corchetes en la misma línea
-SORTED_LIST_WITH_PREFIX="#"
-COUNTER=0
-while IFS= read -r ITEM; do
-    ITEM_NAME=$(echo "$ITEM" | grep -oP '\[\K[^\]]+')
-    SORTED_LIST_WITH_PREFIX="${SORTED_LIST_WITH_PREFIX} [${COUNTER}.${ITEM_NAME}]"
-    COUNTER=$((COUNTER + 1))
-done <<< "$SORTED_LIST"
-
-# Reemplazar la línea 1 con la lista ordenada y numerada
-sed -i "1s|.*|${SORTED_LIST_WITH_PREFIX}|" "$LFLIST_FILE"
+# Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos y organizados
+sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
 
 # Mostrar el contenido final del archivo lflist.conf
+echo "Contenido final del archivo lflist.conf después de las modificaciones:"
 cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
@@ -117,8 +116,9 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Sorted items numerically and alphabetically, prioritized TCG items, and added numerical prefixes in the same line"
-git push origin main
+git commit -m "Keep only items that match the current year, add missing lists from external .conf files, omit those with 'KS', and organize alphabetically"
+git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
