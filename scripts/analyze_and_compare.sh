@@ -7,8 +7,7 @@ DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"
 DEST_REPO_DIR="koishi-Iflist"
 
 # Verificar que el archivo lflist.conf existe
-if [ ! -f "$LFLIST_FILE" ]; then
-    echo "Error: No se encontró el archivo $LFLIST_FILE"
+if [ ! -f "$LFLIST_FILE" ]; entonces echo "Error: No se encontró el archivo $LFLIST_FILE"
     exit 1
 fi
 
@@ -18,9 +17,12 @@ INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+' | head -n 4 |
 # Obtener los primeros 4 ítems para eliminar su contenido más abajo en el archivo
 KEEP_ITEMS=$(echo "$INITIAL_LISTS" | grep -oP '\[\K[^\]]+' | tr '\n' ' ')
 
-# Eliminar todo el contenido en el archivo que no corresponda a los primeros 4 ítems
+# Convertir cada ítem en KEEP_ITEMS a su versión con ceros a la izquierda para emparejar con los desgloses abajo
+KEEP_ITEMS_ZEROED=$(echo "$KEEP_ITEMS" | sed -E 's/([0-9]+)\.([0-9]+)/\1\.0\2/g' | tr '\n' ' ')
+
+# Eliminar todo el contenido en el archivo que no corresponda a los primeros 4 ítems (incluyendo casos con ceros a la izquierda)
 for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
-    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]]; then
+    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]] && [[ ! "$KEEP_ITEMS_ZEROED" =~ $ITEM ]]; then
         echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
         sed -i "/^!$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
@@ -36,18 +38,17 @@ NEW_CONTENT=""
 
 # Iterar sobre todos los archivos .conf en el repositorio de comparación
 for conf_file in comparison-repo/*.conf; do
-    if [ -f "$conf_file" ]; then
+    if [ -f "$conf_file" ]; entonces
         # Extraer la lista del archivo .conf actual que está en el formato #[nombre]
         ITEM=$(grep -oP '^#\[\K[^\]]+' "$conf_file")
 
         # Omitir ítems que contengan "KS" en su nombre
-        if [[ "$ITEM" == *KS* ]]; then
+        if [[ "$ITEM" == *KS* ]]; entonces
             echo "Omitiendo $ITEM porque contiene 'KS'" >> $OUTPUT_FILE
             continue
         fi
 
-        if [ -z "$ITEM" ]; then
-            echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
+        if [ -z "$ITEM" ]; entonces echo "No se encontró una lista válida en $conf_file" >> $OUTPUT_FILE
             continue
         fi
 
@@ -67,13 +68,13 @@ for conf_file in comparison-repo/*.conf; do
 done
 
 # Actualizar la lista inicial en el archivo con solo los primeros 4 ítems más los nuevos
-if [ ! -z "$NEW_LISTS" ]; then
+if [ ! -z "$NEW_LISTS" ]; entonces
     UPDATED_LISTS="${INITIAL_LISTS}${NEW_LISTS}"
     sed -i "1s|.*|#${UPDATED_LISTS}|" "$LFLIST_FILE"
 fi
 
 # Añadir el contenido de las nuevas listas al final del archivo
-if [ ! -z "$NEW_CONTENT" ]; then
+if [ ! -z "$NEW_CONTENT" ]; entonces
     echo -e "$NEW_CONTENT" >> "$LFLIST_FILE"
 fi
 
@@ -87,8 +88,7 @@ tail -n 20 "$LFLIST_FILE"  # Mostrar las últimas 20 líneas para verificar el c
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; then
-    echo "Error: No se pudo clonar el repositorio de destino."
+if [ $? -ne 0 ]; entonces echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
 
@@ -104,6 +104,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
