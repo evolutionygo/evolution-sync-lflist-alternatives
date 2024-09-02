@@ -1,12 +1,7 @@
 #!/bin/bash
 
 # Variables para el script
-OUTPUT_FILE="comparison_result.txt"
 LFLIST_FILE="lflist.conf"
-DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"
-DEST_REPO_DIR="koishi-Iflist"
-
-# Obtener el año actual
 CURRENT_YEAR=$(date +'%Y')
 
 # Verificar que el archivo lflist.conf existe
@@ -16,13 +11,14 @@ if [ ! -f "$LFLIST_FILE" ]; then
 fi
 
 # Extraer la primera línea del archivo que contiene las listas
-INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+')
+INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+\]')
 
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
 for ITEM in $INITIAL_LISTS; do
-    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
-        NEW_LIST="${NEW_LIST}[$ITEM]"
+    FULL_ITEM=$(echo "$ITEM" | tr -d ']')  # Remover el corchete final para buscar el año
+    if echo "$FULL_ITEM" | grep -q "$CURRENT_YEAR"; then
+        NEW_LIST="${NEW_LIST}[${FULL_ITEM}]"
     fi
 done
 
@@ -45,25 +41,6 @@ sed -n '1p' "$LFLIST_FILE"
 echo "Contenido final en lflist.conf:"
 tail -n 20 "$LFLIST_FILE"  # Mostrar las últimas 20 líneas para verificar el contenido añadido
 
-# Clonar el repositorio de destino
-git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; then
-    echo "Error: No se pudo clonar el repositorio de destino."
-    exit 1
-fi
-
-# Mover el archivo modificado al repositorio clonado
-mv "$LFLIST_FILE" "$DEST_REPO_DIR/"
-cd "$DEST_REPO_DIR"
-
-# Configurar Git
-git config user.name "GitHub Action"
-git config user.email "action@github.com"
-
-# Añadir, hacer commit y push
-git add "$LFLIST_FILE"
-git commit -m "Keep only items with the current year"
-git push origin main
 
 
 
