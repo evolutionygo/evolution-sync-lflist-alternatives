@@ -4,6 +4,7 @@
 LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
 DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"  # URL del repo de destino, usa el token para autenticación
 DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
+COMPARISON_REPO_URL="https://github.com/usuario/comparison-repo.git"  # URL del repositorio con archivos .conf
 
 # Obtener el año actual
 CURRENT_YEAR=$(date +'%Y')
@@ -11,6 +12,13 @@ CURRENT_YEAR=$(date +'%Y')
 # Verificar que el archivo lflist.conf existe
 if [ ! -f "$LFLIST_FILE" ]; then
     echo "Error: No se encontró el archivo $LFLIST_FILE"
+    exit 1
+fi
+
+# Clonar el repositorio de comparación
+git clone "$COMPARISON_REPO_URL" comparison-repo
+if [ $? -ne 0 ]; then
+    echo "Error: No se pudo clonar el repositorio de comparación."
     exit 1
 fi
 
