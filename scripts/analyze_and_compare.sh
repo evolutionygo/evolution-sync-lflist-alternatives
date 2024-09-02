@@ -44,11 +44,18 @@ echo "$ITEMS_WITH_EXCLAMATION"
 # Comparar y eliminar los ítems que comienzan con '!' pero no coinciden con la lista filtrada
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para comparar
+    NORMALIZED_ITEM=$(echo "$ITEM_NO_EXCLAMATION" | sed 's/0\([1-9]\)/\1/')  # Remover el cero a la izquierda
     if ! echo "$NEW_LIST" | grep -q "\[$ITEM_NO_EXCLAMATION\]"; then
-        echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
-        sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
-        # Eliminar también de la lista en la línea 1
-        NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$ITEM_NO_EXCLAMATION\]//g")
+        if echo "$NEW_LIST" | grep -q "\[$NORMALIZED_ITEM\]"; then
+            # Si el ítem normalizado coincide, reemplazamos en la línea 1 con la versión con el 0
+            echo "Ajustando $NORMALIZED_ITEM a $ITEM_NO_EXCLAMATION en la línea 1"
+            NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$NORMALIZED_ITEM\]/\[$ITEM_NO_EXCLAMATION\]/")
+        else
+            # Si no coincide, eliminamos el ítem de la lista y el archivo
+            echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
+            sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
+            NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$ITEM_NO_EXCLAMATION\]//g")
+        fi
     fi
 done <<< "$ITEMS_WITH_EXCLAMATION"
 
@@ -76,8 +83,9 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Keep only items with the current year and match ! items"
+git commit -m "Adjust items to match those with leading zeros in line 1"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
