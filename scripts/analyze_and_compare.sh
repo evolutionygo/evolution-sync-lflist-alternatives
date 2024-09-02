@@ -102,7 +102,7 @@ cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; entonces
+if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
