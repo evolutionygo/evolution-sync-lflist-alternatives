@@ -15,10 +15,6 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
-# Mostrar todos los ítems que comienzan con '!'
-echo "Ítems que comienzan con '!':"
-grep '^!' "$LFLIST_FILE"
-
 # Extraer la primera línea del archivo que contiene las listas y guardar en INITIAL_LISTS
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
@@ -40,16 +36,19 @@ done <<< "$INITIAL_LISTS"
 # Mostrar los ítems que cumplen con el año actual
 echo "Ítems que cumplen con el año $CURRENT_YEAR: $MATCHED_ITEMS"
 
-# Actualizar la línea 1 en el archivo para mantener solo los ítems con el año actual
-sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
+# Mostrar todos los ítems que comienzan con '!'
+echo "Ítems que comienzan con '!':"
+ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
+echo "$ITEMS_WITH_EXCLAMATION"
 
-# Eliminar todas las listas desplegadas que no correspondan a los ítems con el año actual
-for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
-    if ! echo "$NEW_LIST" | grep -q "$ITEM"; then
+# Comparar y eliminar los ítems que comienzan con '!' pero no coinciden con la lista filtrada
+while IFS= read -r ITEM; do
+    ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para comparar
+    if ! echo "$NEW_LIST" | grep -q "\[$ITEM_NO_EXCLAMATION\]"; then
         echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
-        sed -i "/^!$ITEM/,/^$/d" "$LFLIST_FILE"
+        sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
-done
+done <<< "$ITEMS_WITH_EXCLAMATION"
 
 # Mostrar el contenido final del archivo lflist.conf
 echo "Contenido final del archivo lflist.conf después de las modificaciones:"
@@ -72,8 +71,9 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Keep only items with the current year"
+git commit -m "Keep only items with the current year and match ! items"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
