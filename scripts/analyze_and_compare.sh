@@ -9,7 +9,7 @@ DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
 CURRENT_YEAR=$(date +'%Y')
 
 # Verificar que el archivo lflist.conf existe
-if [ ! -f "$LFLIST_FILE" ]; entonces
+if [ ! -f "$LFLIST_FILE" ]; then
     echo "Error: No se encontró el archivo $LFLIST_FILE"
     exit 1
 fi
@@ -22,7 +22,7 @@ echo "$ITEMS_WITH_EXCLAMATION"
 # Filtrar y mantener solo los ítems que corresponden al año actual
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para obtener el nombre del ítem
-    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; entonces
+    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; then
         echo "Manteniendo $ITEM"  # Log para mostrar los ítems que se mantienen
     else
         echo "Eliminando $ITEM del archivo lflist.conf"
@@ -36,7 +36,7 @@ cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; entonces
+if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
