@@ -10,19 +10,19 @@ COMPARISON_REPO_URL="https://github.com/termitaklk/lflist"  # URL del repositori
 CURRENT_YEAR=$(date +'%Y')
 
 # Verificar que el archivo lflist.conf existe
-if [ ! -f "$LFLIST_FILE" ]; entonces
+if [ ! -f "$LFLIST_FILE" ]; then
     echo "Error: No se encontró el archivo $LFLIST_FILE"
     exit 1
 fi
 
 # Eliminar el directorio comparison-repo si ya existe
-if [ -d "comparison-repo" ]; entonces
+if [ -d "comparison-repo" ]; then
     rm -rf comparison-repo
 fi
 
 # Clonar el repositorio de comparación
 git clone "$COMPARISON_REPO_URL" comparison-repo
-if [ $? -ne 0 ]; entonces
+if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de comparación."
     exit 1
 fi
@@ -35,7 +35,7 @@ NEW_LIST="#"
 MATCHED_ITEMS=""
 while IFS= read -r ITEM; do
     echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
-    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; entonces
+    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
         echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
@@ -52,7 +52,7 @@ echo "$ITEMS_WITH_EXCLAMATION"
 # Filtrar y mantener solo los ítems que corresponden al año actual
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para obtener el nombre del ítem
-    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; entonces
+    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; then
         echo "Manteniendo $ITEM"  # Log para mostrar los ítems que se mantienen
     else
         echo "Eliminando $ITEM del archivo lflist.conf"
@@ -63,20 +63,20 @@ done <<< "$ITEMS_WITH_EXCLAMATION"
 # Recopilar los ítems de los archivos .conf, omitir los que contengan "KS" y organizarlos alfabéticamente
 ADDITIONAL_ITEMS=""
 for conf_file in comparison-repo/*.conf; do
-    if [ -f "$conf_file" ]; entonces
+    if [ -f "$conf_file" ]; then
         ITEM=$(grep -oP '^!\K.*' "$conf_file")
         
-        if [ -z "$ITEM" ]; entonces
+        if [ -z "$ITEM" ]; then
             echo "No se encontró una lista válida en $conf_file"
             continue
         fi
 
-        if echo "$ITEM" | grep -q "KS"; entonces
+        if echo "$ITEM" | grep -q "KS"; then
             echo "Omitiendo $ITEM ya que contiene 'KS'"
             continue
         fi
 
-        if ! echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; entonces
+        if ! echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; then
             ADDITIONAL_ITEMS="${ADDITIONAL_ITEMS} [${ITEM}]"
             cat "$conf_file" >> "$LFLIST_FILE"
             echo "" >> "$LFLIST_FILE"  # Añadir una línea en blanco para separar las entradas
@@ -97,7 +97,7 @@ cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; entonces
+if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
