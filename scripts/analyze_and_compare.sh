@@ -18,6 +18,8 @@ fi
 # Extraer la primera línea del archivo que contiene las listas
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
+echo "Guardado ITEM: $INITIAL_LISTS"  # Log para mostrar el ítem que se guarda
+
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
 MATCHED_ITEMS=""
