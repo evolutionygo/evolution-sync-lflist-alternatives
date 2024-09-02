@@ -15,8 +15,23 @@ fi
 # Extraer la primera línea del archivo que contiene las listas
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+')
 
+# Crear una lista temporal para almacenar las fechas y sus correspondientes nombres
+declare -A ITEM_DATE_MAP
+
+for ITEM in $INITIAL_LISTS; do
+    # Extraer la fecha usando grep (busca un patrón de fecha en el nombre, e.g., 2024.9)
+    DATE=$(echo "$ITEM" | grep -oP '\b\d{4}\.\d{1,2}')
+    if [ -n "$DATE" ]; then
+        ITEM_DATE_MAP["$ITEM"]=$DATE
+    else
+        echo "No se encontró una fecha en $ITEM, omitiendo..."
+    fi
+done
+
 # Ordenar los ítems por fecha y tomar los 4 más recientes
-TOP_4_ITEMS=$(echo "$INITIAL_LISTS" | sort -r | head -n 4)
+TOP_4_ITEMS=$(for ITEM in "${!ITEM_DATE_MAP[@]}"; do
+    echo "${ITEM_DATE_MAP[$ITEM]} $ITEM"
+done | sort -r | head -n 4 | awk '{print $2}')
 
 # Crear una nueva lista para la línea 1 con los 4 ítems más recientes
 NEW_LIST="#"
@@ -62,6 +77,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only the 4 most recent lists"
 git push origin main
+
 
 
 
