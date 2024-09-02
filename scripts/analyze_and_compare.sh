@@ -4,6 +4,13 @@
 LFLIST_FILE="lflist.conf"
 CURRENT_YEAR=$(date +'%Y')
 
+# Variables para el script
+OUTPUT_FILE="comparison_result.txt"
+LFLIST_FILE="lflist.conf"
+DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"
+DEST_REPO_DIR="koishi-Iflist"
+
+
 # Verificar que el archivo lflist.conf existe
 if [ ! -f "$LFLIST_FILE" ]; then
     echo "Error: No se encontró el archivo $LFLIST_FILE"
