@@ -1,15 +1,13 @@
 #!/bin/bash
 
 # Variables para el script
-LFLIST_FILE="lflist.conf"
+OUTPUT_FILE="comparison_result.txt"  # Archivo de salida para el informe
+LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
+DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"  # URL del repo de destino, usa el token para autenticación
+DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
+
+# Obtener el año actual
 CURRENT_YEAR=$(date +'%Y')
-
-# Variables para el script
-OUTPUT_FILE="comparison_result.txt"
-LFLIST_FILE="lflist.conf"
-DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"
-DEST_REPO_DIR="koishi-Iflist"
-
 
 # Verificar que el archivo lflist.conf existe
 if [ ! -f "$LFLIST_FILE" ]; then
@@ -18,14 +16,13 @@ if [ ! -f "$LFLIST_FILE" ]; then
 fi
 
 # Extraer la primera línea del archivo que contiene las listas
-INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+\]')
+INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
 for ITEM in $INITIAL_LISTS; do
-    FULL_ITEM=$(echo "$ITEM" | tr -d ']')  # Remover el corchete final para buscar el año
-    if echo "$FULL_ITEM" | grep -q "$CURRENT_YEAR"; then
-        NEW_LIST="${NEW_LIST}[${FULL_ITEM}]"
+    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
+        NEW_LIST="${NEW_LIST}${ITEM}"
     fi
 done
 
