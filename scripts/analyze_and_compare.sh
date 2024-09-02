@@ -15,6 +15,10 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
+# Mostrar todos los ítems que comienzan con '!'
+echo "Ítems que comienzan con '!':"
+grep '^!' "$LFLIST_FILE"
+
 # Extraer la primera línea del archivo que contiene las listas y guardar en INITIAL_LISTS
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
@@ -70,6 +74,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items with the current year"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
