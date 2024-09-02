@@ -23,6 +23,9 @@ echo "" >> $OUTPUT_FILE
 NEW_LISTS=""
 NEW_CONTENT=""
 
+# Crear una lista con los ítems que se van a conservar (los 4 primeros y los nuevos)
+KEEP_ITEMS=$(echo "$INITIAL_LISTS" | grep -oP '\[\K[^\]]+' | tr '\n' ' ')
+
 # Iterar sobre todos los archivos .conf en el repositorio de comparación
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
@@ -46,11 +49,20 @@ for conf_file in comparison-repo/*.conf; do
         else
             echo "$ITEM de $conf_file NO se encuentra en la lista inicial. Añadiendo..." >> $OUTPUT_FILE
             NEW_LISTS="${NEW_LISTS}[$ITEM]"
+            KEEP_ITEMS="${KEEP_ITEMS} $ITEM"
 
             # Copiar el contenido de la lista, excluyendo la línea que contiene `#[ ]`
             CONTENT=$(sed '1d' "$conf_file")
             NEW_CONTENT="${NEW_CONTENT}\n${CONTENT}"
         fi
+    fi
+done
+
+# Eliminar el contenido de listas no deseadas en el archivo
+for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
+    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]]; then
+        echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
+        sed -i "/^!$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
 done
 
@@ -92,6 +104,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
