@@ -10,7 +10,7 @@ DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
 CURRENT_YEAR=$(date +'%Y')
 
 # Verificar que el archivo lflist.conf existe
-if [ ! -f "$LFLIST_FILE" ]; then
+if [ ! -f "$LFLIST_FILE" ]; entonces
     echo "Error: No se encontró el archivo $LFLIST_FILE"
     exit 1
 fi
@@ -26,7 +26,7 @@ NEW_LIST="#"
 MATCHED_ITEMS=""
 while IFS= read -r ITEM; do
     echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
-    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
+    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; entonces
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
         echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
@@ -41,20 +41,15 @@ echo "Ítems que comienzan con '!':"
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 echo "$ITEMS_WITH_EXCLAMATION"
 
-# Comparar y eliminar los ítems que comienzan con '!' pero no coinciden con la lista filtrada
+# Comparar y eliminar los ítems que comienzan con '!' solo si la diferencia es un 0 a la izquierda
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para comparar
-    NORMALIZED_ITEM=$(echo "$ITEM_NO_EXCLAMATION" | sed 's/0\([1-9]\)/\1/')  # Remover el cero a la izquierda
-    if ! echo "$NEW_LIST" | grep -q "\[$ITEM_NO_EXCLAMATION\]"; then
-        if echo "$NEW_LIST" | grep -q "\[$NORMALIZED_ITEM\]"; then
-            # Si el ítem normalizado coincide, reemplazamos en la línea 1 con la versión con el 0
-            echo "Ajustando $NORMALIZED_ITEM a $ITEM_NO_EXCLAMATION en la línea 1"
-            NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$NORMALIZED_ITEM\]/\[$ITEM_NO_EXCLAMATION\]/")
-        else
-            # Si no coincide, eliminamos el ítem de la lista y el archivo
-            echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
-            sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
-            NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$ITEM_NO_EXCLAMATION\]//g")
+    NORMALIZED_ITEM_NO_EXCLAMATION=$(echo "$ITEM_NO_EXCLAMATION" | sed 's/^0*//')  # Remover todos los ceros a la izquierda
+    if [ "$ITEM_NO_EXCLAMATION" != "$NORMALIZED_ITEM_NO_EXCLAMATION" ]; entonces
+        if echo "$NEW_LIST" | grep -q "\[$NORMALIZED_ITEM_NO_EXCLAMATION\]"; entonces
+            echo "Eliminando el 0 a la izquierda: $ITEM_NO_EXCLAMATION -> $NORMALIZED_ITEM_NO_EXCLAMATION"
+            # Reemplazar en la línea 1 con la versión sin el 0
+            NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$ITEM_NO_EXCLAMATION\]/\[$NORMALIZED_ITEM_NO_EXCLAMATION\]/")
         fi
     fi
 done <<< "$ITEMS_WITH_EXCLAMATION"
@@ -68,7 +63,7 @@ cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; then
+if [ $? -ne 0 ]; entonces
     echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
@@ -83,8 +78,9 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Adjust items to match those with leading zeros in line 1"
+git commit -m "Remove leading zeros from items in line 1 if that's the only difference"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
