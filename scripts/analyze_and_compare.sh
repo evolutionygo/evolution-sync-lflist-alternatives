@@ -12,8 +12,8 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
-# Extraer la primera línea del archivo que contiene las listas
-INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE")
+# Extraer la primera línea del archivo que contiene las listas y truncar a los primeros 4 ítems
+INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+' | head -n 4 | sed 's/^/[/;s/$/]/' | tr -d '\n')
 
 # Inicializar el archivo de salida
 echo "Resultado de la comparación y adiciones:" > $OUTPUT_FILE
@@ -54,10 +54,10 @@ for conf_file in comparison-repo/*.conf; do
     fi
 done
 
-# Añadir las nuevas listas al final de la línea inicial
+# Actualizar la lista inicial en el archivo con solo los primeros 4 ítems más los nuevos
 if [ ! -z "$NEW_LISTS" ]; then
     UPDATED_LISTS="${INITIAL_LISTS}${NEW_LISTS}"
-    sed -i "1s|.*|${UPDATED_LISTS}|" "$LFLIST_FILE"
+    sed -i "1s|.*|#${UPDATED_LISTS}|" "$LFLIST_FILE"
 fi
 
 # Añadir el contenido de las nuevas listas al final del archivo
