@@ -96,23 +96,21 @@ for conf_file in comparison-repo/*.conf; do
     fi
 done
 
-# Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos
-sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
-
 # Ordenar los ítems en la lista inicial (línea 1) y en el archivo lflist.conf
 # Priorizar ítems que contienen 'TCG'
-SORTED_LIST=$(echo "$INITIAL_LISTS" | grep 'TCG' | sort -V)
-SORTED_LIST+=$(echo "$INITIAL_LISTS" | grep -v 'TCG' | sort -V)
+SORTED_LIST=$(echo "$NEW_LIST" | grep 'TCG' | sort -V)
+SORTED_LIST+=$(echo "$NEW_LIST" | grep -v 'TCG' | sort -V)
 
-# Añadir prefijos numéricos
+# Añadir prefijos numéricos al nombre dentro de los corchetes en la misma línea
 SORTED_LIST_WITH_PREFIX=""
 COUNTER=0
 while IFS= read -r ITEM; do
-    SORTED_LIST_WITH_PREFIX="${SORTED_LIST_WITH_PREFIX}${COUNTER}.${ITEM}\n"
+    ITEM_NAME=$(echo "$ITEM" | grep -oP '\[\K[^\]]+')
+    SORTED_LIST_WITH_PREFIX="${SORTED_LIST_WITH_PREFIX} [${COUNTER}.${ITEM_NAME}]"
     COUNTER=$((COUNTER + 1))
 done <<< "$SORTED_LIST"
 
-# Reemplazar la línea 1 y reordenar el contenido del archivo lflist.conf
+# Reemplazar la línea 1 con la lista ordenada y numerada
 sed -i "1s|.*|${SORTED_LIST_WITH_PREFIX}|" "$LFLIST_FILE"
 
 # Mostrar el contenido final del archivo lflist.conf
@@ -136,8 +134,8 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Sorted items numerically, prioritized TCG items, and added numerical prefixes"
-git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+git commit -m "Sorted items numerically, prioritized TCG items, and added numerical prefixes in the same lin
+
 
 
 
