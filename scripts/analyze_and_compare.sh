@@ -15,22 +15,23 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
-# Extraer la primera línea del archivo que contiene las listas
+# Extraer la primera línea del archivo que contiene las listas y guardar en INITIAL_LISTS
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
-echo "Guardado ITEM: $INITIAL_LISTS"  # Log para mostrar el ítem que se guarda
+# Mostrar el contenido almacenado en INITIAL_LISTS
+echo "Contenido de INITIAL_LISTS: $INITIAL_LISTS"
 
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
 MATCHED_ITEMS=""
-for ITEM in $INITIAL_LISTS; do
+while IFS= read -r ITEM; do
     echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
         echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
-done
+done <<< "$INITIAL_LISTS"
 
 # Mostrar los ítems que cumplen con el año actual
 echo "Ítems que cumplen con el año $CURRENT_YEAR: $MATCHED_ITEMS"
@@ -69,6 +70,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items with the current year"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
