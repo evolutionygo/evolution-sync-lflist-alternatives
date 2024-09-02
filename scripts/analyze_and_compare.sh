@@ -18,19 +18,28 @@ INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+' | head -n 4 |
 # Obtener los primeros 4 ítems para eliminar su contenido más abajo en el archivo
 KEEP_ITEMS=$(echo "$INITIAL_LISTS" | grep -oP '\[\K[^\]]+' | tr '\n' ' ')
 
-# Identificar y ajustar ítems con ceros a la izquierda
+# Lista para ítems ajustados
+ADJUSTED_ITEMS=""
+
+# Ajustar los ítems con ceros a la izquierda si se encuentran en la lista inferior
 for ITEM in $KEEP_ITEMS; do
     ITEM_WITH_ZERO=$(echo "$ITEM" | sed -E 's/([0-9]+)\.([0-9]+)\b/\1\.0\2/')
     if grep -q "^!$ITEM_WITH_ZERO" "$LFLIST_FILE"; then
-        # Actualizar la lista inicial para que use la versión con cero a la izquierda
+        # Actualizar el ítem en la lista inicial
         INITIAL_LISTS=$(echo "$INITIAL_LISTS" | sed "s/\[$ITEM\]/\[$ITEM_WITH_ZERO\]/")
+        ADJUSTED_ITEMS="$ADJUSTED_ITEMS $ITEM_WITH_ZERO"
         echo "Actualizado $ITEM a $ITEM_WITH_ZERO en la lista inicial" >> $OUTPUT_FILE
+    else
+        ADJUSTED_ITEMS="$ADJUSTED_ITEMS $ITEM"
     fi
 done
 
+# Actualizar la lista inicial en el archivo
+sed -i "1s|.*|#${INITIAL_LISTS}|" "$LFLIST_FILE"
+
 # Eliminar todo el contenido en el archivo que no corresponda a los primeros 4 ítems ajustados
 for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
-    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]]; then
+    if [[ ! "$ADJUSTED_ITEMS" =~ $ITEM ]]; then
         echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
         sed -i "/^!$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
@@ -61,13 +70,13 @@ for conf_file in comparison-repo/*.conf; do
             continue
         fi
 
-        # Verificar si el item ya está en la lista inicial
+        # Verificar si el ítem ya está en la lista inicial
         if echo "$INITIAL_LISTS" | grep -q "\[$ITEM\]"; then
             echo "$ITEM de $conf_file ya se encuentra en la lista inicial" >> $OUTPUT_FILE
         else
             # Añadir el ítem nuevo a la lista
             NEW_LISTS="${NEW_LISTS}[$ITEM]"
-            KEEP_ITEMS="${KEEP_ITEMS} $ITEM"
+            ADJUSTED_ITEMS="${ADJUSTED_ITEMS} $ITEM"
 
             # Copiar el contenido de la lista, excluyendo la línea que contiene `#[ ]`
             CONTENT=$(sed '1d' "$conf_file")
@@ -114,6 +123,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
