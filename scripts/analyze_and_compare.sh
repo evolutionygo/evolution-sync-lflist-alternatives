@@ -20,11 +20,16 @@ INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
+MATCHED_ITEMS=""
 for ITEM in $INITIAL_LISTS; do
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
+        MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
     fi
 done
+
+# Mostrar los ítems que cumplen con el año actual
+echo "Ítems que cumplen con el año $CURRENT_YEAR: $MATCHED_ITEMS"
 
 # Actualizar la línea 1 en el archivo para mantener solo los ítems con el año actual
 sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
@@ -37,13 +42,9 @@ for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
     fi
 done
 
-# Verificar el contenido de la lista inicial después de la modificación
-echo "Lista inicial en lflist.conf después de la modificación:"
-sed -n '1p' "$LFLIST_FILE"
-
-# Verificar el contenido añadido al final del archivo
-echo "Contenido final en lflist.conf:"
-tail -n 20 "$LFLIST_FILE"  # Mostrar las últimas 20 líneas para verificar el contenido añadido
+# Mostrar el contenido final del archivo lflist.conf
+echo "Contenido final del archivo lflist.conf después de las modificaciones:"
+cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
@@ -64,6 +65,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items with the current year"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
