@@ -67,8 +67,8 @@ done <<< "$ITEMS_WITH_EXCLAMATION"
 # Comparar con los archivos .conf de otro repositorio y añadir los que no existan en lflist.conf
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
-        # Extraer la lista del archivo .conf actual que comienza con '!'
-        ITEM=$(grep -oP '^!\K[^\s]+' "$conf_file")
+        # Extraer la lista del archivo .conf actual que comienza con '!', manejando nombres con espacios
+        ITEM=$(grep -oP '^!\K.*' "$conf_file")
         
         if [ -z "$ITEM" ]; then
             echo "No se encontró una lista válida en $conf_file"
@@ -116,6 +116,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items that match the current year and add missing lists from external .conf files"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
