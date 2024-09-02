@@ -47,8 +47,13 @@ while IFS= read -r ITEM; do
     if ! echo "$NEW_LIST" | grep -q "\[$ITEM_NO_EXCLAMATION\]"; then
         echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
         sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
+        # Eliminar también de la lista en la línea 1
+        NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$ITEM_NO_EXCLAMATION\]//g")
     fi
 done <<< "$ITEMS_WITH_EXCLAMATION"
+
+# Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos
+sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
 
 # Mostrar el contenido final del archivo lflist.conf
 echo "Contenido final del archivo lflist.conf después de las modificaciones:"
@@ -73,6 +78,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Keep only items with the current year and match ! items"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
