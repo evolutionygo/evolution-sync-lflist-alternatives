@@ -134,7 +134,9 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Sorted items numerically, prioritized TCG items, and added numerical prefixes in the same lin
+git commit -m "Sorted items numerically, prioritized TCG items, and added numerical prefixes in the same line"
+git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+
 
 
 
