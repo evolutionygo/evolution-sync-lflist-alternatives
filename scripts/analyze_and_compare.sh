@@ -4,7 +4,7 @@
 LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
 DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"  # URL del repo de destino, usa el token para autenticación
 DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
-COMPARISON_REPO_URL="https://github.com/termitaklk/lflist"  # URL del repositorio con archivos .conf
+COMPARISON_REPO_URL="https://github.com/termitaklk/lflist.git"  # URL del repositorio con archivos .conf
 
 # Obtener el año actual
 CURRENT_YEAR=$(date +'%Y')
