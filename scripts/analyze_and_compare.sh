@@ -28,23 +28,23 @@ for ITEM in $INITIAL_LISTS; do
     fi
 done
 
-# Ordenar los ítems por fecha (invertido para obtener los más recientes primero) y tomar los 4 más recientes
-TOP_4_ITEMS=$(for ITEM in "${!ITEM_DATE_MAP[@]}"; do
+# Ordenar los ítems por fecha (invertido para obtener los más recientes primero)
+SORTED_ITEMS=$(for ITEM in "${!ITEM_DATE_MAP[@]}"; do
     echo "${ITEM_DATE_MAP[$ITEM]} $ITEM"
-done | sort -r | head -n 4 | awk '{print $2}')
+done | sort -r | awk '{print $2}')
 
-# Crear una nueva lista para la línea 1 con los 4 ítems más recientes
+# Crear una nueva lista para la línea 1 con los ítems más recientes
 NEW_LIST="#"
-for ITEM in $TOP_4_ITEMS; do
+for ITEM in $SORTED_ITEMS; do
     NEW_LIST="${NEW_LIST}[$ITEM]"
 done
 
-# Actualizar la línea 1 en el archivo con los 4 ítems más recientes
+# Actualizar la línea 1 en el archivo con los ítems más recientes
 sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
 
-# Eliminar todas las listas desplegadas que no correspondan a los 4 ítems más recientes
+# Eliminar todas las listas desplegadas que no correspondan a los ítems más recientes
 for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
-    if ! echo "$TOP_4_ITEMS" | grep -q "$ITEM"; then
+    if ! echo "$SORTED_ITEMS" | grep -q "$ITEM"; then
         echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
         sed -i "/^!$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
@@ -75,7 +75,7 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Keep only the 4 most recent lists"
+git commit -m "Keep all recent lists"
 git push origin main
 
 
