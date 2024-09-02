@@ -10,7 +10,7 @@ DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
 CURRENT_YEAR=$(date +'%Y')
 
 # Verificar que el archivo lflist.conf existe
-if [ ! -f "$LFLIST_FILE" ]; entonces
+if [ ! -f "$LFLIST_FILE" ]; then
     echo "Error: No se encontró el archivo $LFLIST_FILE"
     exit 1
 fi
@@ -26,7 +26,7 @@ NEW_LIST="#"
 MATCHED_ITEMS=""
 while IFS= read -r ITEM; do
     echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
-    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; entonces
+    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
         echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
@@ -45,8 +45,8 @@ echo "$ITEMS_WITH_EXCLAMATION"
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para comparar
     NORMALIZED_ITEM_NO_EXCLAMATION=$(echo "$ITEM_NO_EXCLAMATION" | sed 's/^0*//')  # Remover todos los ceros a la izquierda
-    if [ "$ITEM_NO_EXCLAMATION" != "$NORMALIZED_ITEM_NO_EXCLAMATION" ]; entonces
-        if echo "$NEW_LIST" | grep -q "\[$NORMALIZED_ITEM_NO_EXCLAMATION\]"; entonces
+    if [ "$ITEM_NO_EXCLAMATION" != "$NORMALIZED_ITEM_NO_EXCLAMATION" ]; then
+        if echo "$NEW_LIST" | grep -q "\[$NORMALIZED_ITEM_NO_EXCLAMATION\]"; then
             echo "Eliminando el 0 a la izquierda: $ITEM_NO_EXCLAMATION -> $NORMALIZED_ITEM_NO_EXCLAMATION"
             # Reemplazar en la línea 1 con la versión sin el 0
             NEW_LIST=$(echo "$NEW_LIST" | sed "s/\[$ITEM_NO_EXCLAMATION\]/\[$NORMALIZED_ITEM_NO_EXCLAMATION\]/")
@@ -63,7 +63,7 @@ cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
 git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; entonces
+if [ $? -ne 0 ]; then
     echo "Error: No se pudo clonar el repositorio de destino."
     exit 1
 fi
