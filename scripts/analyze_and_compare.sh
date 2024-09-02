@@ -18,22 +18,19 @@ INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[\K[^\]]+' | head -n 4 |
 # Obtener los primeros 4 ítems para eliminar su contenido más abajo en el archivo
 KEEP_ITEMS=$(echo "$INITIAL_LISTS" | grep -oP '\[\K[^\]]+' | tr '\n' ' ')
 
-# Crear una lista con los ítems ajustados para tener ceros a la izquierda donde sea necesario
-ADJUSTED_ITEMS=""
+# Identificar y ajustar ítems con ceros a la izquierda
 for ITEM in $KEEP_ITEMS; do
-    ADJUSTED_ITEM=$(echo "$ITEM" | sed -E 's/([0-9]+)\.([0-9]+)/\1\.0\2/')
-    if [[ "$ITEM" != "$ADJUSTED_ITEM" ]]; then
-        # Añadir el ítem ajustado con el cero a la izquierda a la lista inicial
-        INITIAL_LISTS=$(echo "$INITIAL_LISTS" | sed "s/\[$ITEM\]/\[$ADJUSTED_ITEM\]/")
-        ADJUSTED_ITEMS="$ADJUSTED_ITEMS $ADJUSTED_ITEM"
-    else
-        ADJUSTED_ITEMS="$ADJUSTED_ITEMS $ITEM"
+    ITEM_WITH_ZERO=$(echo "$ITEM" | sed -E 's/([0-9]+)\.([0-9]+)\b/\1\.0\2/')
+    if grep -q "^!$ITEM_WITH_ZERO" "$LFLIST_FILE"; then
+        # Actualizar la lista inicial para que use la versión con cero a la izquierda
+        INITIAL_LISTS=$(echo "$INITIAL_LISTS" | sed "s/\[$ITEM\]/\[$ITEM_WITH_ZERO\]/")
+        echo "Actualizado $ITEM a $ITEM_WITH_ZERO en la lista inicial" >> $OUTPUT_FILE
     fi
 done
 
-# Eliminar todo el contenido en el archivo que no corresponda a los primeros 4 ítems (incluyendo los ajustados)
+# Eliminar todo el contenido en el archivo que no corresponda a los primeros 4 ítems ajustados
 for ITEM in $(grep -oP '^!\K[^\s]+' "$LFLIST_FILE"); do
-    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]] && [[ ! "$ADJUSTED_ITEMS" =~ $ITEM ]]; then
+    if [[ ! "$KEEP_ITEMS" =~ $ITEM ]]; then
         echo "Eliminando contenido de la lista $ITEM del archivo lflist.conf"
         sed -i "/^!$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
@@ -68,17 +65,9 @@ for conf_file in comparison-repo/*.conf; do
         if echo "$INITIAL_LISTS" | grep -q "\[$ITEM\]"; then
             echo "$ITEM de $conf_file ya se encuentra en la lista inicial" >> $OUTPUT_FILE
         else
-            # Ajustar el nombre si se necesita un cero a la izquierda
-            ITEM_WITH_ZERO=$(echo "$ITEM" | sed -E 's/([0-9]+)\.([0-9]+)/\1\.0\2/')
-            if [[ "$ITEM" != "$ITEM_WITH_ZERO" ]]; then
-                echo "Añadiendo $ITEM_WITH_ZERO en lugar de $ITEM en la lista inicial" >> $OUTPUT_FILE
-                NEW_LISTS="${NEW_LISTS}[$ITEM_WITH_ZERO]"
-                ADJUSTED_ITEMS="${ADJUSTED_ITEMS} $ITEM_WITH_ZERO"
-            else
-                echo "$ITEM de $conf_file NO se encuentra en la lista inicial. Añadiendo..." >> $OUTPUT_FILE
-                NEW_LISTS="${NEW_LISTS}[$ITEM]"
-                ADJUSTED_ITEMS="${ADJUSTED_ITEMS} $ITEM"
-            fi
+            # Añadir el ítem nuevo a la lista
+            NEW_LISTS="${NEW_LISTS}[$ITEM]"
+            KEEP_ITEMS="${KEEP_ITEMS} $ITEM"
 
             # Copiar el contenido de la lista, excluyendo la línea que contiene `#[ ]`
             CONTENT=$(sed '1d' "$conf_file")
@@ -125,6 +114,7 @@ git config user.email "action@github.com"
 git add "$LFLIST_FILE"
 git commit -m "Add updated lflist.conf"
 git push origin main
+
 
 
 
