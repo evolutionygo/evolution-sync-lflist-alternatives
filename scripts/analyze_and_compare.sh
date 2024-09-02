@@ -22,7 +22,7 @@ fi
 
 # Clonar el repositorio de comparación
 git clone "$COMPARISON_REPO_URL" comparison-repo
-if [ $? -ne 0 ]; then
+if [ $? -ne 0 ]; entonces
     echo "Error: No se pudo clonar el repositorio de comparación."
     exit 1
 fi
@@ -30,36 +30,25 @@ fi
 # Extraer la primera línea del archivo que contiene las listas y guardar en INITIAL_LISTS
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 
-# Mostrar el contenido almacenado en INITIAL_LISTS
-echo "Contenido de INITIAL_LISTS: $INITIAL_LISTS"
-
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
 MATCHED_ITEMS=""
 while IFS= read -r ITEM; do
-    echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
-        echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
 done <<< "$INITIAL_LISTS"
 
-# Mostrar los ítems que cumplen con el año actual
-echo "Ítems que cumplen con el año $CURRENT_YEAR: $MATCHED_ITEMS"
-
 # Mostrar todos los ítems que comienzan con '!'
-echo "Ítems que comienzan con '!':"
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
-echo "$ITEMS_WITH_EXCLAMATION"
 
 # Filtrar y mantener solo los ítems que corresponden al año actual
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para obtener el nombre del ítem
     if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; then
-        echo "Manteniendo $ITEM"  # Log para mostrar los ítems que se mantienen
+        echo "Manteniendo $ITEM"
     else
-        echo "Eliminando $ITEM del archivo lflist.conf"
         sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
     fi
 done <<< "$ITEMS_WITH_EXCLAMATION"
@@ -67,42 +56,30 @@ done <<< "$ITEMS_WITH_EXCLAMATION"
 # Comparar con los archivos .conf de otro repositorio y añadir los que no existan en lflist.conf
 for conf_file in comparison-repo/*.conf; do
     if [ -f "$conf_file" ]; then
-        # Extraer la lista del archivo .conf actual que comienza con '!', manejando nombres con espacios
         ITEM=$(grep -oP '^!\K.*' "$conf_file")
         
         if [ -z "$ITEM" ]; then
-            echo "No se encontró una lista válida en $conf_file"
             continue
         fi
 
-        # Omitir ítems que contengan "KS"
         if echo "$ITEM" | grep -q "KS"; then
-            echo "Omitiendo $ITEM ya que contiene 'KS'"
             continue
         fi
 
-        # Comparar con las listas en lflist.conf
-        if echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; then
-            echo "$ITEM de $conf_file ya se encuentra en lflist.conf"
-        else
-            echo "$ITEM de $conf_file NO se encuentra en lflist.conf. Añadiendo..."
-            # Añadir la lista al final de lflist.conf
+        if ! echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; then
             cat "$conf_file" >> "$LFLIST_FILE"
-            echo "" >> "$LFLIST_FILE"  # Añadir una línea en blanco para separar las entradas
-
-            # Añadir la lista a la sección inicial de listas en la línea 1
+            echo "" >> "$LFLIST_FILE"
             NEW_LIST="${NEW_LIST} [${ITEM}]"
         fi
     fi
 done
 
 # Ordenar los ítems en la lista inicial (línea 1) y en el archivo lflist.conf
-# Priorizar ítems que contienen 'TCG'
 SORTED_LIST=$(echo "$NEW_LIST" | grep 'TCG' | sort -V)
 SORTED_LIST+=$(echo "$NEW_LIST" | grep -v 'TCG' | sort -V)
 
 # Añadir prefijos numéricos al nombre dentro de los corchetes en la misma línea
-SORTED_LIST_WITH_PREFIX=""
+SORTED_LIST_WITH_PREFIX="#"
 COUNTER=0
 while IFS= read -r ITEM; do
     ITEM_NAME=$(echo "$ITEM" | grep -oP '\[\K[^\]]+')
@@ -114,7 +91,6 @@ done <<< "$SORTED_LIST"
 sed -i "1s|.*|${SORTED_LIST_WITH_PREFIX}|" "$LFLIST_FILE"
 
 # Mostrar el contenido final del archivo lflist.conf
-echo "Contenido final del archivo lflist.conf después de las modificaciones:"
 cat "$LFLIST_FILE"
 
 # Clonar el repositorio de destino
@@ -135,7 +111,8 @@ git config user.email "action@github.com"
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
 git commit -m "Sorted items numerically, prioritized TCG items, and added numerical prefixes in the same line"
-git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
+git push origin main
+
 
 
 
