@@ -34,37 +34,50 @@ INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 # Mostrar el contenido almacenado en INITIAL_LISTS
 echo "Contenido de INITIAL_LISTS: $INITIAL_LISTS"
 
-# Filtrar y mantener solo los ítems que contienen el año actual o el año anterior
+# Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
+MATCHED_ITEMS=""
 COUNT_CURRENT_YEAR=0
 
-# Ordenar los ítems por fecha (año.mes o año.mes.día)
-SORTED_ITEMS=$(echo "$INITIAL_LISTS" | tr ' ' '\n' | grep -oP '\[\K[^]]+' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
-
-# Recorrer los ítems ordenados y agregar solo aquellos que coincidan con el año actual o anterior
-for ITEM in $SORTED_ITEMS; do
-    ITEM_YEAR=$(echo "$ITEM" | cut -d'.' -f1)
-    
-    # Incluir solo ítems cuyo año sea el actual o el anterior
-    if [ "$ITEM_YEAR" -eq "$CURRENT_YEAR" ] || [ "$ITEM_YEAR" -eq "$PREVIOUS_YEAR" ]; then
-        if [ "$COUNT_CURRENT_YEAR" -eq 0 ]; then
-            NEW_LIST="#[$ITEM]"
-        else
-            NEW_LIST="$NEW_LIST [$ITEM]"
-        fi
-        COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
-    else
-        echo "Excluyendo ITEM: [$ITEM] ya que no coincide con el año actual o anterior"
+while IFS= read -r ITEM; do
+    echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
+    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
+        NEW_LIST="${NEW_LIST}${ITEM}"
+        MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
+		COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
+        echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
-done
+done <<< "$INITIAL_LISTS"
 
-# Mostrar los ítems ordenados y filtrados
-echo "Ítems ordenados por fecha que coinciden con el año actual o anterior: $NEW_LIST"
+# Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
+if [ "$COUNT_CURRENT_YEAR" -le 2 ]; then
+    while IFS= read -r ITEM; do
+        if echo "$ITEM" | grep -q "$PREVIOUS_YEAR"; then
+            NEW_LIST="${NEW_LIST}${ITEM}"
+            MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
+            echo "Añadiendo ITEM del año anterior: $ITEM"
+        fi
+    done <<< "$INITIAL_LISTS"
+fi
+
+# Mostrar los ítems que cumplen con el año actual
+echo "Ítems que cumplen con el año $CURRENT_YEAR y $PREVIOUS_YEAR: $MATCHED_ITEMS"
 
 # Mostrar todos los ítems que comienzan con '!'
 echo "Ítems que comienzan con '!':"
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 echo "$ITEMS_WITH_EXCLAMATION"
+
+# Filtrar y mantener solo los ítems que corresponden al año actual
+while IFS= read -r ITEM; do
+    ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para obtener el nombre del ítem
+    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; then
+        echo "Manteniendo $ITEM"  # Log para mostrar los ítems que se mantienen
+    else
+        echo "Eliminando $ITEM del archivo lflist.conf"
+        sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
+    fi
+done <<< "$ITEMS_WITH_EXCLAMATION"
 
 # Comparar con los archivos .conf de otro repositorio y añadir los que no existan en lflist.conf
 for conf_file in comparison-repo/*.conf; do
@@ -98,7 +111,7 @@ for conf_file in comparison-repo/*.conf; do
     fi
 done
 
-# Actualizar la línea 1 en el archivo para mantener los ítems ordenados por fecha
+# Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos
 sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
 
 # Mostrar el contenido final del archivo lflist.conf
@@ -122,9 +135,8 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Ordenar los ítems por fecha, asegurando que el más reciente aparezca primero."
+git commit -m "Keep only items that match the current year and add missing lists from external .conf files, omitting those with 'KS' in the name"
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
-
 
 
 
