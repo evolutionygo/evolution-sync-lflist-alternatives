@@ -6,7 +6,7 @@ on:
       - main  # O la rama en la que deseas que se ejecute
   workflow_dispatch:  # Permite ejecutar manualmente la acción desde la interfaz de GitHub
   schedule:
-     - cron: '0 * * * *'  # Ejecutar cada 1 hora
+    - cron: '*/2 * * * *'  # Ejecutar cada 2 minutos
 
 jobs:
   analyze-file:
