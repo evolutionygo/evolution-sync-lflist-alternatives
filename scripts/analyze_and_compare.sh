@@ -21,6 +21,13 @@ if [ -d "comparison-repo" ]; then
     rm -rf comparison-repo
 fi
 
+# Organizar los ítems por el formato año.mes o año.mes.día
+SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+
+# Imprimir los ítems ordenados
+echo "Ítems que comienzan con '!' ordenados por el más reciente:"
+echo "$SORTED_ITEMS"
+
 # Clonar el repositorio de comparación
 git clone "$COMPARISON_REPO_URL" comparison-repo
 if [ $? -ne 0 ]; then
