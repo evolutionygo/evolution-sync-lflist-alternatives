@@ -6,7 +6,7 @@ DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"  # URL 
 DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
 COMPARISON_REPO_URL="https://github.com/termitaklk/lflist"  # URL del repositorio con archivos .conf
 
-# Obtener el año actual
+# Obtener el año actual y el año anterior
 CURRENT_YEAR=$(date +'%Y')
 PREVIOUS_YEAR=$((CURRENT_YEAR - 1))
 
@@ -44,7 +44,7 @@ while IFS= read -r ITEM; do
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
-		COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
+        COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
         echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
 done <<< "$INITIAL_LISTS"
@@ -60,18 +60,17 @@ if [ "$COUNT_CURRENT_YEAR" -le 2 ]; then
     done <<< "$INITIAL_LISTS"
 fi
 
-# Mostrar los ítems que cumplen con el año actual
+# Mostrar los ítems que cumplen con el año actual y el año anterior si aplica
 echo "Ítems que cumplen con el año $CURRENT_YEAR y $PREVIOUS_YEAR: $MATCHED_ITEMS"
 
 # Mostrar todos los ítems que comienzan con '!'
-echo "Ítems que comienzan con '!':"
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 echo "$ITEMS_WITH_EXCLAMATION"
 
 # Filtrar y mantener solo los ítems que corresponden al año actual
 while IFS= read -r ITEM; do
     ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para obtener el nombre del ítem
-    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; then
+    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR" || [ "$COUNT_CURRENT_YEAR" -le 2 ] && echo "$ITEM_NO_EXCLAMATION" | grep -q "$PREVIOUS_YEAR"; then
         echo "Manteniendo $ITEM"  # Log para mostrar los ítems que se mantienen
     else
         echo "Eliminando $ITEM del archivo lflist.conf"
@@ -135,22 +134,5 @@ git config user.email "action@github.com"
 
 # Añadir, hacer commit y push
 git add "$LFLIST_FILE"
-git commit -m "Keep only items that match the current year and add missing lists from external .conf files, omitting those with 'KS' in the name"
+git commit -m "Keep only items that match the current year, add missing lists from external .conf files, omit those with 'KS', and include previous year items if current year has 2 or fewer."
 git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
