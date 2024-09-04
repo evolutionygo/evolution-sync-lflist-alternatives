@@ -36,18 +36,28 @@ echo "Contenido de INITIAL_LISTS: $INITIAL_LISTS"
 
 # Filtrar y mantener solo los ítems que contienen el año actual
 NEW_LIST="#"
-MATCHED_ITEMS=""
 COUNT_CURRENT_YEAR=0
 
-while IFS= read -r ITEM; do
-    echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
-    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
-        NEW_LIST="${NEW_LIST}${ITEM}"
-        MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
-		COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
-        echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
+# Ordenar los ítems por fecha (año.mes)
+SORTED_ITEMS=$(echo "$INITIAL_LISTS" | tr ' ' '\n' | grep -oP '\[\K[^]]+' | sort -r -t '.' -k1,1n -k2,2n)
+
+# Recorrer los ítems ordenados y agregar el más reciente al inicio de la lista
+for ITEM in $SORTED_ITEMS; do
+    if [ "$COUNT_CURRENT_YEAR" -eq 0 ]; then
+        NEW_LIST="#[$ITEM]"
+    else
+        NEW_LIST="$NEW_LIST [$ITEM]"
     fi
+    COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
 done <<< "$INITIAL_LISTS"
+
+# Mostrar los ítems ordenados
+echo "Ítems ordenados por fecha: $NEW_LIST"
+
+# Mostrar todos los ítems que comienzan con '!'
+echo "Ítems que comienzan con '!':"
+ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
+echo "$ITEMS_WITH_EXCLAMATION"
 
 # Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
 if [ "$COUNT_CURRENT_YEAR" -le 2 ]; then
@@ -63,10 +73,6 @@ fi
 # Mostrar los ítems que cumplen con el año actual
 echo "Ítems que cumplen con el año $CURRENT_YEAR y $PREVIOUS_YEAR: $MATCHED_ITEMS"
 
-# Mostrar todos los ítems que comienzan con '!'
-echo "Ítems que comienzan con '!':"
-ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
-echo "$ITEMS_WITH_EXCLAMATION"
 
 # Filtrar y mantener solo los ítems que corresponden al año actual
 while IFS= read -r ITEM; do
