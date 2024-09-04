@@ -16,16 +16,6 @@ if [ ! -f "$LFLIST_FILE" ]; then
     exit 1
 fi
 
-# Extraer todos los ítems que comienzan con '!'
-ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
-
-# Organizar los ítems por el formato año.mes o año.mes.día
-SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | sort -r -t '.' -k2,2n -k1,1n -k3,3n)
-
-# Imprimir los ítems ordenados
-echo "Ítems que comienzan con '!' ordenados por el más reciente:"
-echo "$SORTED_ITEMS"
-
 # Eliminar el directorio comparison-repo si ya existe
 if [ -d "comparison-repo" ]; then
     rm -rf comparison-repo
