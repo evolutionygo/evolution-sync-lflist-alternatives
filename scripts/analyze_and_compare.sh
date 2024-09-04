@@ -24,19 +24,31 @@ fi
 # Extraer todos los ítems que comienzan con '!'
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 
-# Organizar los ítems por fecha (año.mes o año.mes.día) y priorizar los que contienen "TCG"
+# Organizar los ítems por fecha (año.mes o año.mes.día) y priorizar los que contienen "TCG" solo si hay duplicados
 SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | sort -t '.' -k1,1n -k2,2n -k3,3n | awk '
 {
-    # Si el ítem contiene "TCG", darle prioridad (ponerlo antes en la lista)
+    split($0, parts, " ")
+    date = parts[1]  # Tomar la fecha, asumiendo que es la primera parte del ítem
+
+    # Almacenar los ítems en un array por fecha
+    items[date] = items[date] ? items[date] RS $0 : $0
     if ($0 ~ /TCG/) {
-        print "1" $0  # Añadir un prefijo "1" para dar prioridad
-    } else {
-        print "2" $0  # Añadir un prefijo "2" para los demás ítems
+        priority[date] = $0  # Guardar el ítem con "TCG" si existe
     }
-}' | sort | sed 's/^[12]//')  # Ordenar por el prefijo y luego eliminarlo
+}
+END {
+    for (date in items) {
+        if (priority[date]) {
+            print priority[date]  # Si hay un ítem con "TCG", imprimirlo primero
+        }
+        else {
+            print items[date]  # Si no, imprimir el resto
+        }
+    }
+}' | sort)
 
 # Imprimir los ítems ordenados y priorizados
-echo "Ítems que comienzan con '!' ordenados y priorizados (TCG primero):"
+echo "Ítems que comienzan con '!' ordenados y priorizados (TCG si hay duplicados):"
 echo "$SORTED_ITEMS"
 
 # Clonar el repositorio de comparación
