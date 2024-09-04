@@ -21,11 +21,22 @@ if [ -d "comparison-repo" ]; then
     rm -rf comparison-repo
 fi
 
-# Organizar los ítems por el formato año.mes o año.mes.día
-SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+# Extraer todos los ítems que comienzan con '!'
+ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 
-# Imprimir los ítems ordenados
-echo "Ítems que comienzan con '!' ordenados por el más reciente:"
+# Organizar los ítems por fecha (año.mes o año.mes.día) y priorizar los que contienen "TCG"
+SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | sort -t '.' -k1,1n -k2,2n -k3,3n | awk '
+{
+    # Si el ítem contiene "TCG", darle prioridad (ponerlo antes en la lista)
+    if ($0 ~ /TCG/) {
+        print "1" $0  # Añadir un prefijo "1" para dar prioridad
+    } else {
+        print "2" $0  # Añadir un prefijo "2" para los demás ítems
+    }
+}' | sort | sed 's/^[12]//')  # Ordenar por el prefijo y luego eliminarlo
+
+# Imprimir los ítems ordenados y priorizados
+echo "Ítems que comienzan con '!' ordenados y priorizados (TCG primero):"
 echo "$SORTED_ITEMS"
 
 # Clonar el repositorio de comparación
