@@ -44,10 +44,17 @@ while IFS= read -r ITEM; do
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
-		COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
+        COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
         echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
 done <<< "$INITIAL_LISTS"
+
+# Organizar los ítems filtrados de mayor a menor por año.mes o año.mes.día
+SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | tr ' ' '\n' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+
+# Imprimir la lista organizada
+echo "Ítems filtrados y organizados de mayor a menor:"
+echo "$SORTED_ITEMS"
 
 # Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
 if [ "$COUNT_CURRENT_YEAR" -le 2 ]; then
