@@ -52,6 +52,9 @@ done <<< "$INITIAL_LISTS"
 # Organizar los ítems de la Z a la A (alfabéticamente inverso)
 SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
+# Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
+SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; else print $0, 0}' | sort -k2,2nr -k1,1)
+
 # Imprimir la lista organizada
 echo "Ítems filtrados y organizados de la Z a la A:"
 echo "$SORTED_ITEMS"
