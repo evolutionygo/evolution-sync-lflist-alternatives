@@ -49,6 +49,9 @@ while IFS= read -r ITEM; do
     fi
 done <<< "$INITIAL_LISTS"
 
+# Extraer todos los ítems que comienzan con '!'
+ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
+
 # Ordenar los ítems numéricamente por año.mes.día, y dar prioridad a los que contienen "TCG" en caso de igualdad
 SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
