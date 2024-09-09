@@ -49,11 +49,11 @@ while IFS= read -r ITEM; do
     fi
 done <<< "$INITIAL_LISTS"
 
-# Organizar los ítems filtrados de mayor a menor por año.mes o año.mes.día, incluyendo correctamente los caracteres alfanuméricos
-SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+# Organizar los ítems de la Z a la A (alfabéticamente inverso)
+SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | grep -oP '\[[^\]]+\]' | sort -r)
 
 # Imprimir la lista organizada
-echo "Ítems filtrados y organizados de mayor a menor:"
+echo "Ítems filtrados y organizados de la Z a la A:"
 echo "$SORTED_ITEMS"
 
 # Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
