@@ -61,7 +61,7 @@ echo "$SORTED_ITEMS"
 
 # Imprimir los ítems ordenados (sin los indicadores '1' y '0')
 echo "Ítems filtrados y organizados "
-echo "$SORTED_ITEMS" | sort -k2,2nr -k1,1 -r -t
+echo "$SORTED_ITEMS" | sort -k2,2nr -k1,1 -t
 
 # Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
 if [ "$COUNT_CURRENT_YEAR" -le 2 ]; then
