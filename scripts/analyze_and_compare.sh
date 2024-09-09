@@ -55,6 +55,9 @@ ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 # Ordenar los ítems numéricamente por año.mes.día
 SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
+echo "Ítems que comienzan con '!' ordenados desde el más reciente hasta el más viejo, con prioridad a 'TCG' en caso de empate:"
+echo "$SORTED_ITEMS"
+
 # Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
 SORTED_ITEMS=$(echo "$SORTED_ITEMS" | while IFS= read -r line; do
     if [[ $line == *"TCG"* ]]; then
