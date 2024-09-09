@@ -50,7 +50,7 @@ while IFS= read -r ITEM; do
 done <<< "$INITIAL_LISTS"
 
 # Organizar los ítems de la Z a la A (alfabéticamente inverso)
-SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | grep -oP '\[[^\]]+\]' | sort -r)
+SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | grep -oP '\[[^\]]+\]' | sort -t '.' -k1,1n -k2,2n -k3,3n)
 
 # Imprimir la lista organizada
 echo "Ítems filtrados y organizados de la Z a la A:"
