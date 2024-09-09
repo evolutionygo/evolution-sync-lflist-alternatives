@@ -50,7 +50,7 @@ while IFS= read -r ITEM; do
 done <<< "$INITIAL_LISTS"
 
 # Organizar los ítems filtrados de mayor a menor por año.mes o año.mes.día
-SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | tr ' ' '\n' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | tr ' ' '\n' | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
 # Imprimir la lista organizada
 echo "Ítems filtrados y organizados de mayor a menor:"
