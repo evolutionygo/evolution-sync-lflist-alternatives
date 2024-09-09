@@ -49,11 +49,14 @@ while IFS= read -r ITEM; do
     fi
 done <<< "$INITIAL_LISTS"
 
-# Organizar los ítems de la Z a la A (alfabéticamente inverso)
-SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+# Ordenar los ítems numéricamente por año.mes.día, y dar prioridad a los que contienen "TCG" en caso de igualdad
+SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
-# Imprimir la lista organizada
-echo "Ítems filtrados y organizados de la Z a la A:"
+# Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
+SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; else print $0, 0}' | sort -k2,2nr -k1,1)
+
+# Imprimir los ítems ordenados
+echo "Ítems que comienzan con '!' ordenados desde el más reciente hasta el más viejo, con prioridad a 'TCG' en caso de empate:"
 echo "$SORTED_ITEMS"
 
 # Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
