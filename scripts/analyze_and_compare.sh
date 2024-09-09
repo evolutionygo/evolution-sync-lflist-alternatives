@@ -49,26 +49,11 @@ while IFS= read -r ITEM; do
     fi
 done <<< "$INITIAL_LISTS"
 
-# Extraer todos los ítems que comienzan con '!'
-ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
+# Organizar los ítems de la Z a la A (alfabéticamente inverso)
+SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
-# Ordenar los ítems numéricamente por año.mes.día
-SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
-
-echo "Ítems que comienzan con '!' ordenados desde el más reciente hasta el más viejo, con prioridad a 'TCG' en caso de empate:"
-echo "$SORTED_ITEMS"
-
-# Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
-SORTED_ITEMS=$(echo "$SORTED_ITEMS" | while IFS= read -r line; do
-    if [[ $line == *"TCG"* ]]; then
-        echo "1 $line"
-    else
-        echo "0 $line"
-    fi
-done | sort -k1,1nr -k2,2)
-
-# Imprimir los ítems ordenados
-echo "Ítems que comienzan con '!' ordenados desde el más reciente hasta el más viejo, con prioridad a 'TCG' en caso de empate:"
+# Imprimir la lista organizada
+echo "Ítems filtrados y organizados de la Z a la A:"
 echo "$SORTED_ITEMS"
 
 # Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
