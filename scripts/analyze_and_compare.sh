@@ -52,11 +52,17 @@ done <<< "$INITIAL_LISTS"
 # Extraer todos los ítems que comienzan con '!'
 ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
 
-# Ordenar los ítems numéricamente por año.mes.día, y dar prioridad a los que contienen "TCG" en caso de igualdad
+# Ordenar los ítems numéricamente por año.mes.día
 SORTED_ITEMS=$(echo "$ITEMS_WITH_EXCLAMATION" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
 # Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
-SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; else print $0, 0}' | sort -k2,2nr -k1,1)
+SORTED_ITEMS=$(echo "$SORTED_ITEMS" | while IFS= read -r line; do
+    if [[ $line == *"TCG"* ]]; then
+        echo "1 $line"
+    else
+        echo "0 $line"
+    fi
+done | sort -k1,1nr -k2,2)
 
 # Imprimir los ítems ordenados
 echo "Ítems que comienzan con '!' ordenados desde el más reciente hasta el más viejo, con prioridad a 'TCG' en caso de empate:"
