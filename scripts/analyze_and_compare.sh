@@ -44,7 +44,7 @@ while IFS= read -r ITEM; do
     if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
         NEW_LIST="${NEW_LIST}${ITEM}"
         MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
-        COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
+		COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
         echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
     fi
 done <<< "$INITIAL_LISTS"
