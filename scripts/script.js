@@ -75,6 +75,17 @@ function findListForItem(item, lflistData) {
   return lines.find(line => line.startsWith(`!${item}`));
 }
 
+// Función para verificar si hay cambios antes de realizar un commit
+function hasChanges() {
+  try {
+    const output = execSync('git status --porcelain').toString();
+    return output.trim() !== '';  // Si hay algún cambio, el resultado no será vacío
+  } catch (error) {
+    console.error('Error al verificar los cambios en git:', error);
+    return false;
+  }
+}
+
 // Función para mover y hacer push al repositorio de destino
 function moveAndPush() {
   // Mover el archivo lflist.conf al directorio clonado
@@ -96,15 +107,20 @@ function moveAndPush() {
   // Añadir el archivo modificado
   execSync(`git add ${LFLIST_FILE}`);
 
-  // Crear un nuevo commit
-  execSync('git commit -m "Update lflist.conf with the latest changes"');
+  // Verificar si hay cambios antes de hacer commit
+  if (hasChanges()) {
+    // Crear un nuevo commit
+    execSync('git commit -m "Update lflist.conf with the latest changes"');
 
-  // Hacer push de los cambios
-  try {
-    execSync('git push origin main');
-    console.log('Cambios enviados al repositorio correctamente.');
-  } catch (error) {
-    console.error('Error al hacer git push:', error);
+    // Hacer push de los cambios
+    try {
+      execSync('git push origin main');
+      console.log('Cambios enviados al repositorio correctamente.');
+    } catch (error) {
+      console.error('Error al hacer git push:', error);
+    }
+  } else {
+    console.log('No se encontraron cambios en el archivo, no se realiza ningún commit.');
   }
 }
 
@@ -143,6 +159,7 @@ function main() {
 }
 
 main(); // Inicia el proceso
+
 
 
 
