@@ -101,38 +101,7 @@ function findListForItem(item, lflistData) {
   return listItem.join('\n');
 }
 
-
-
-// Función para verificar si hay cambios antes de realizar un commit
-function hasChanges() {
-  try {
-    const output = execSync('git status --porcelain').toString();
-    return output.trim() !== '';  // Si hay algún cambio, el resultado no será vacío
-  } catch (error) {
-    console.error('Error al verificar los cambios en git:', error);
-    return false;
-  }
-}
-
-// Función para mover y hacer push al repositorio de destino
-function moveAndPush() {
-  // Mover el archivo lflist.conf al directorio clonado
-  execSync(`mv scripts/${LFLIST_FILE} koishi-Iflist/`);
-  process.chdir('koishi-Iflist');
-
-  // Configurar Git
-  execSync('git config user.name "GitHub Action"');
-  execSync('git config user.email "action@github.com"');
-
-  // Realizar un pull para traer cualquier cambio previo
-  try {
-    execSync('git pull origin main');
-    console.log('Cambios del repositorio remoto traídos correctamente.');
-  } catch (error) {
-    console.error('Error al hacer git pull:', error);
-  }
-  
-  // Función para recorrer los archivos .conf en el repositorio de comparación
+// Función para recorrer los archivos .conf en el repositorio de comparación y listar ítems en orden alfabético
 function listItemsInAlphabeticalOrder(confRepoPath) {
   const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
 
@@ -142,43 +111,43 @@ function listItemsInAlphabeticalOrder(confRepoPath) {
   confFiles.forEach(file => {
     const filePath = path.join(confRepoPath, file);
     const fileData = fs.readFileSync(filePath, 'utf8');
-    
-    // Buscar ítems que comienzan con '!' (indicando una lista)
-    const fileItems = fileData.match(/^!\s*[^\s]+/gm) || [];
 
-    // Limpiar los ítems y agregar a la lista de todos los ítems
-    fileItems.forEach(item => {
-      items.push(item.trim());
-    });
+    // Extraer los ítems que comienzan con "!"
+    const fileItems = fileData.match(/^!\S+/gm);
+    if (fileItems) {
+      items = items.concat(fileItems.map(item => item.replace(/^!/, ''))); // Quitar el "!"
+    }
   });
 
-  // Ordenar los ítems en orden alfabético
-  items.sort((a, b) => a.localeCompare(b));
+  // Ordenar alfabéticamente
+  const sortedItems = items.sort((a, b) => a.localeCompare(b));
 
-  // Imprimir los ítems en consola
-  console.log("Ítems en orden alfabético:");
-  items.forEach(item => console.log(item));
+  // Imprimir los ítems ordenados
+  console.log('Ítems de archivos .conf en orden alfabético:');
+  sortedItems.forEach(item => console.log(item));
+}
 
-  return items;
+// Función para verificar si hay cambios antes de hacer commit
+function hasChanges() {
+  const status = execSync('git status --porcelain').toString();
+  return status.trim().length > 0;
+}
 
+// Función para mover y hacer push al repositorio de destino
+function moveAndPush() {
+  execSync(`mv scripts/${LFLIST_FILE} koishi-Iflist/`);
+  process.chdir('koishi-Iflist');
+  execSync('git config user.name "GitHub Action"');
+  execSync('git config user.email "action@github.com"');
 
-  // Añadir el archivo modificado
-  execSync(`git add ${LFLIST_FILE}`);
-
-  // Verificar si hay cambios antes de hacer commit
   if (hasChanges()) {
-    // Crear un nuevo commit
+    execSync(`git add ${LFLIST_FILE}`);
     execSync('git commit -m "Update lflist.conf with the latest changes"');
-
-    // Hacer push de los cambios
-    try {
-      execSync('git push origin main');
-      console.log('Cambios enviados al repositorio correctamente.');
-    } catch (error) {
-      console.error('Error al hacer git push:', error);
-    }
+    execSync('git pull --rebase origin main');  // Asegurarse de que no haya conflictos
+    execSync('git push origin main');
+    console.log('Cambios subidos al repositorio.');
   } else {
-    console.log('No se encontraron cambios en el archivo, no se realiza ningún commit.');
+    console.log('No hay cambios para subir.');
   }
 }
 
@@ -214,14 +183,13 @@ function main() {
   // Clonar el repositorio de destino, mover el archivo y hacer push
   cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
   moveAndPush();
-  
-  const comparisonRepoPath = path.join('comparison-repo'); // Ruta al repositorio de comparación
-  // Recorrer los archivos .conf y listar ítems en orden alfabético
-  listItemsInAlphabeticalOrder(comparisonRepoPath);
-}
+
+  // Listar ítems de los archivos .conf en orden alfabético
+  listItemsInAlphabeticalOrder('comparison-repo');
 }
 
 main(); // Inicia el proceso
+
 
 
 
