@@ -133,8 +133,8 @@ function listItemsInAlphabeticalOrder(confRepoPath) {
     const filePath = path.join(confRepoPath, file);
     const fileData = fs.readFileSync(filePath, 'utf8');
 
-    // Extraer los ítems que comienzan con "!"
-    const fileItems = fileData.match(/^!\S+/gm);
+    // Extraer los ítems que comienzan con "!", incluyendo los que contienen espacios
+    const fileItems = fileData.match(/^!.+/gm);
     if (fileItems) {
       items = items.concat(fileItems.map(item => item.replace(/^!/, ''))); // Quitar el "!"
     }
