@@ -58,8 +58,17 @@ function prioritizeTCG(sortedLists) {
 // Función para escribir el nuevo archivo lflist.conf
 function writeNewLflist(mostRecentItem, listItem) {
   const header = `#[${mostRecentItem}]`;
-  fs.writeFileSync(NEW_LFLIST_FILE, `${header}\n${listItem || ''}`);
+  const filePath = path.join('scripts', 'new_lflist.conf');
+
+  fs.writeFileSync(filePath, `${header}\n${listItem || ''}`);
   console.log(`Nuevo archivo lflist.conf creado con el ítem más reciente: ${header}`);
+
+  // Confirmar que el archivo ha sido creado
+  if (fs.existsSync(filePath)) {
+    console.log(`Archivo generado correctamente en ${filePath}`);
+  } else {
+    console.error(`Error: No se pudo generar el archivo ${filePath}`);
+  }
 }
 
 // Función para encontrar la lista correspondiente al ítem más reciente
