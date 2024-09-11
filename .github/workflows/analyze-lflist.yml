@@ -3,35 +3,49 @@ name: Analyze and Compare lflist.conf
 on:
   push:
     branches:
-      - main  # O la rama en la que deseas que se ejecute
-  workflow_dispatch:  # Permite ejecutar manualmente la acción desde la interfaz de GitHub
+      - main  # Ejecutar cuando haya un commit en la rama "main"
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '0 * * * *'  # Cada hora
+  workflow_dispatch:  # Permite ejecutar manualmente la acción desde GitHub
 
 jobs:
   analyze-file:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. Chequear el repositorio principal
     - name: Checkout this repository
       uses: actions/checkout@v3
 
-    - name: Clone lflist repository
-      run: |
-        git clone https://github.com/fallenstardust/YGOMobile-cn-ko-en repo-koishi
-        cp repo-koishi/mobile/assets/data/conf/lflist.conf lflist.conf
+    # 2. Instalar Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'  # Versión de Node.js, puedes ajustar a la que necesites
 
-    - name: Clone comparison repository
-      run: git clone https://github.com/termitaklk/lflist comparison-repo
+    # 3. Instalar dependencias (si es necesario)
+    - name: Install dependencies
+      run: npm install  # O puedes omitirlo si no usas dependencias adicionales
 
-    - name: Analyze and Compare lflist.conf
-      run: bash scripts/analyze_and_compare.sh
+    # 4. Ejecutar el script de Node.js
+    - name: Run Node.js script
+      run: node script.js  # Aquí ejecutas el script que escribimos en Node.js
 
+    # 5. Opcional: Subir los resultados (si generas un archivo nuevo)
     - name: Upload result as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: comparison-analysis
-        path: comparison_result.txt
-        
-    env:
-      TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Pasar el token secreto al script
+        name: lflist-analysis
+        path: new_lflist.conf  # El archivo generado por el script de Node.js
+
+    # 6. (Opcional) Hacer push al repositorio si el archivo lflist.conf ha sido modificado
+    - name: Push changes to GitHub
+      if: success()  # Solo si todo lo anterior fue exitoso
+      run: |
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+        git add new_lflist.conf
+        git commit -m "Add updated lflist.conf"
+        git push
+      env:
+        TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Pasar el token secreto al script
