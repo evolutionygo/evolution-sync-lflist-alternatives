@@ -131,6 +131,36 @@ function moveAndPush() {
   } catch (error) {
     console.error('Error al hacer git pull:', error);
   }
+  
+  // Función para recorrer los archivos .conf en el repositorio de comparación
+function listItemsInAlphabeticalOrder(confRepoPath) {
+  const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
+
+  let items = [];
+
+  // Recorrer cada archivo .conf
+  confFiles.forEach(file => {
+    const filePath = path.join(confRepoPath, file);
+    const fileData = fs.readFileSync(filePath, 'utf8');
+    
+    // Buscar ítems que comienzan con '!' (indicando una lista)
+    const fileItems = fileData.match(/^!\s*[^\s]+/gm) || [];
+
+    // Limpiar los ítems y agregar a la lista de todos los ítems
+    fileItems.forEach(item => {
+      items.push(item.trim());
+    });
+  });
+
+  // Ordenar los ítems en orden alfabético
+  items.sort((a, b) => a.localeCompare(b));
+
+  // Imprimir los ítems en consola
+  console.log("Ítems en orden alfabético:");
+  items.forEach(item => console.log(item));
+
+  return items;
+}
 
   // Añadir el archivo modificado
   execSync(`git add ${LFLIST_FILE}`);
@@ -184,6 +214,11 @@ function main() {
   // Clonar el repositorio de destino, mover el archivo y hacer push
   cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
   moveAndPush();
+  
+  const comparisonRepoPath = path.join('comparison-repo'); // Ruta al repositorio de comparación
+  // Recorrer los archivos .conf y listar ítems en orden alfabético
+  listItemsInAlphabeticalOrder(comparisonRepoPath);
+}
 }
 
 main(); // Inicia el proceso
