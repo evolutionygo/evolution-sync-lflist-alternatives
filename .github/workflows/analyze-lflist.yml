@@ -3,44 +3,49 @@ name: Analyze and Compare lflist.conf
 on:
   push:
     branches:
-      - main  # Ejecutar cuando haya un commit en la rama "main"
+      - main
   schedule:
-    - cron: '0 * * * *'  # Cada hora
-  workflow_dispatch:  # Permite ejecutar manualmente la acción desde GitHub
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   analyze-file:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Chequear el repositorio principal
     - name: Checkout this repository
       uses: actions/checkout@v3
 
-    # 2. Instalar Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '14'  # Versión de Node.js, ajusta según tu proyecto
+        node-version: '14'
 
-    # 3. Instalar dependencias (si es necesario)
     - name: Install dependencies
-      run: npm install  # O puedes omitirlo si no tienes dependencias
+      run: npm install
 
-    # 4. Ejecutar el script de Node.js desde la carpeta 'scripts'
     - name: Run Node.js script
-      run: node scripts/script.js  # Cambiamos para ejecutar desde la carpeta 'scripts'
+      run: node scripts/script.js
 
-    # 5. Opcional: Subir los resultados como artefacto
+    # Verificar si el archivo fue generado
+    - name: Verify new_lflist.conf existence
+      run: |
+        if [ ! -f scripts/new_lflist.conf ]; then
+          echo "Error: El archivo new_lflist.conf no fue generado."
+          exit 1
+        else
+          echo "El archivo new_lflist.conf fue generado correctamente."
+        fi
+
     - name: Upload result as artifact
       uses: actions/upload-artifact@v3
       with:
         name: lflist-analysis
-        path: scripts/new_lflist.conf  # Archivo generado por el script en la carpeta 'scripts'
+        path: scripts/new_lflist.conf
 
-    # 6. Hacer push al repositorio si el archivo lflist.conf ha sido modificado
+    # Solo hacer push si el archivo fue generado correctamente
     - name: Push changes to GitHub
-      if: success()  # Solo si todo lo anterior fue exitoso
+      if: success()
       run: |
         git config --global user.name "GitHub Action"
         git config --global user.email "action@github.com"
@@ -48,4 +53,5 @@ jobs:
         git commit -m "Add updated lflist.conf"
         git push
       env:
-        GITHUB_TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Utilizar el token secreto de GitHub para autenticación
+        GITHUB_TOKEN: ${{ secrets.DEST_REPO_TOKEN }}
+
