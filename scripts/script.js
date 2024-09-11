@@ -18,8 +18,19 @@ function cloneRepo(repoUrl, targetDir) {
   if (fs.existsSync(targetDir)) {
     fs.rmSync(targetDir, { recursive: true, force: true });
   }
-  execSync(`git clone ${repoUrl} ${targetDir}`);
-  console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
+  try {
+    execSync(`git clone ${repoUrl} ${targetDir}`);
+    console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
+
+    // Verificar si el directorio fue creado correctamente
+    if (fs.existsSync(targetDir)) {
+      console.log(`El directorio ${targetDir} se creó correctamente.`);
+    } else {
+      console.error(`Error: El directorio ${targetDir} no se creó correctamente.`);
+    }
+  } catch (error) {
+    console.error(`Error al clonar el repositorio ${repoUrl}:`, error.message);
+  }
 }
 
 // Función para leer el archivo lflist.conf y devolver las listas
@@ -177,6 +188,9 @@ function main() {
     console.error('Error: El directorio comparison-repo no se creó correctamente.');
     process.exit(1);  // Salir con error si no se puede acceder al directorio
   }
+  
+  // Listar ítems de los archivos .conf en orden alfabético
+  listItemsInAlphabeticalOrder('comparison-repo');
 
   // Leer el archivo lflist.conf
   const lflistData = fs.readFileSync(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE), 'utf8');
