@@ -66,20 +66,19 @@ SORTED_ITEMS=$(echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1)
 MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//' | head -n 1)
 echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
-# Paso 5: Añadir el ítem más reciente en la línea 1 del nuevo archivo lflist.conf (solo el más reciente)
-echo "Añadiendo el ítem más reciente en la línea 1 del nuevo archivo lflist.conf..."
-sed -i "1s|.*|#[$MOST_RECENT_ITEM]|" "$NEW_LFLIST_FILE"
-
 # Paso 6: Añadir la lista correspondiente al ítem más reciente en el nuevo archivo
 echo "Añadiendo la lista correspondiente del ítem más reciente..."
-grep "^!$MOST_RECENT_ITEM" "$LFLIST_FILE" >> "$NEW_LFLIST_FILE"
 
-# Mostrar el contenido del nuevo archivo para ver los cambios
-echo "Contenido del nuevo archivo lflist.conf:"
-cat "$NEW_LFLIST_FILE"
+# Buscar la lista que corresponde al ítem más reciente
+LIST_ITEM=$(grep "^!$MOST_RECENT_ITEM" "$LFLIST_FILE")
 
-# Fin del proceso sin realizar el push al repositorio
-echo "Proceso completado sin realizar cambios en el repositorio."
+# Verificar si se encontró una lista
+if [ -z "$LIST_ITEM" ]; then
+    echo "No se encontró una lista para el ítem más reciente: $MOST_RECENT_ITEM"
+else
+    echo "Lista encontrada: $LIST_ITEM"
+    echo "$LIST_ITEM" >> "$NEW_LFLIST_FILE"
+fi
 
 
 
