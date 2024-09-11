@@ -53,13 +53,7 @@ echo "Verificando el ítem más reciente y dando prioridad a 'TCG'..."
 SORTED_ITEMS=$(echo "$CURRENT_YEAR_ITEMS" | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
 # Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
-SORTED_ITEMS=$(echo "$SORTED_ITEMS" | while IFS= read -r line; do
-    if [[ $line == *"TCG"* ]]; then
-        echo "$line 1"
-    else
-        echo "$line 0"
-    fi
-done | sort -k2,2nr -k1,1)
+SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; else print $0, 0}' | sort -k2,2nr -k1,1)
 
 # Imprimir los ítems ordenados correctamente, eliminando saltos de línea adicionales y preservando los corchetes
 echo "Ítems organizados desde el más reciente al más viejo (prioridad a 'TCG'):"
