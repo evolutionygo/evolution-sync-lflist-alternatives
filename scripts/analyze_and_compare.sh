@@ -62,9 +62,8 @@ echo "$SORTED_ITEMS"
 # Ordenar los ítems de más reciente a más viejo
 SORTED_ITEMS=$(echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1)
 
-# Imprimir el ítem más reciente, eliminando el indicador '1' o '0' sin cortar el ítem
+# Obtener el ítem más reciente
 MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//' | head -n 1)
-
 echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
 # Paso 5: Añadir el ítem más reciente en la línea 1 del nuevo archivo lflist.conf (solo el más reciente)
@@ -81,7 +80,6 @@ cat "$NEW_LFLIST_FILE"
 
 # Fin del proceso sin realizar el push al repositorio
 echo "Proceso completado sin realizar cambios en el repositorio."
-
 
 
 
