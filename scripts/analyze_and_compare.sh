@@ -61,16 +61,17 @@ SORTED_ITEMS=$(echo "$SORTED_ITEMS" | while IFS= read -r line; do
     fi
 done | sort -k2,2nr -k1,1)
 
-# Imprimir los ítems ordenados y el más reciente, sin truncar los nombres
+# Imprimir los ítems ordenados correctamente, eliminando saltos de línea adicionales y preservando los corchetes
 echo "Ítems organizados desde el más reciente al más viejo (prioridad a 'TCG'):"
-echo "$SORTED_ITEMS" | cut -d' ' -f1  # Eliminar el indicador de '1' o '0'
+echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//'
 
 # Imprimir el ítem más reciente
-MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | cut -d' ' -f1 | head -n 1)
+MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//' | head -n 1)
 echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
 # Fin del script, sin push al repositorio
 echo "Proceso completado sin realizar cambios en el repositorio."
+
 
 
 
