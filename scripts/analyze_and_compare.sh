@@ -67,9 +67,9 @@ MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:s
 
 echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
-# Paso 5: Añadir el ítem más reciente en la línea 1 del nuevo archivo lflist.conf (después de filtrar)
+# Paso 5: Añadir el ítem más reciente en la línea 1 del nuevo archivo lflist.conf (solo el más reciente)
 echo "Añadiendo el ítem más reciente en la línea 1 del nuevo archivo lflist.conf..."
-sed -i "1s|^|#[$MOST_RECENT_ITEM] |" "$NEW_LFLIST_FILE"
+sed -i "1s|.*|#[$MOST_RECENT_ITEM]|" "$NEW_LFLIST_FILE"
 
 # Paso 6: Añadir la lista correspondiente al ítem más reciente en el nuevo archivo
 echo "Añadiendo la lista correspondiente del ítem más reciente..."
