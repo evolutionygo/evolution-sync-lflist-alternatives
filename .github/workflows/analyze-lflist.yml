@@ -53,5 +53,5 @@ jobs:
         git commit -m "Add updated lflist.conf"
         git push
       env:
-        GITHUB_TOKEN: ${{ secrets.DEST_REPO_TOKEN }}
+        TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Pasar el token secreto al script
 
