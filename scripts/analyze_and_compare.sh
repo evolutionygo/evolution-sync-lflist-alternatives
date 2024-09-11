@@ -57,7 +57,10 @@ SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; e
 
 # Imprimir los ítems ordenados correctamente, eliminando saltos de línea adicionales y preservando los corchetes
 echo "Ítems organizados desde el más reciente al más viejo (prioridad a 'TCG'):"
-echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//'
+echo "$SORTED_ITEMS"
+
+echo "Ítems filtrados y organizados 3 "
+echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1
 
 # Imprimir el ítem más reciente
 MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//' | head -n 1)
