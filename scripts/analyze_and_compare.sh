@@ -1,156 +1,71 @@
 #!/bin/bash
 
-# Variables para el script
-LFLIST_FILE="lflist.conf"  # Nombre del archivo lflist.conf que estás procesando
-DEST_REPO_URL="https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git"  # URL del repo de destino, usa el token para autenticación
-DEST_REPO_DIR="koishi-Iflist"  # Directorio del repositorio clonado
-COMPARISON_REPO_URL="https://github.com/termitaklk/lflist"  # URL del repositorio con archivos .conf
+# Variables para los repositorios y archivos
+LFLIST_FILE="lflist.conf"  # Archivo lflist.conf que vamos a trabajar
+NEW_LFLIST_FILE="new_lflist.conf"  # Nuevo archivo lflist.conf donde haremos los cambios
+CONF_REPO_URL="https://github.com/termitaklk/lflist"  # Repositorio con los archivos .conf
+LFLIST_REPO_URL="https://github.com/fallenstardust/YGOMobile-cn-ko-en"  # Repositorio con el archivo lflist.conf
+CONF_DIR="comparison-repo"  # Directorio donde se clonará el repositorio de archivos .conf
+CURRENT_YEAR=$(date +'%Y')  # Año en curso
+PREVIOUS_YEAR=$((CURRENT_YEAR - 1))  # Año anterior
 
-# Obtener el año actual
-CURRENT_YEAR=$(date +'%Y')
-PREVIOUS_YEAR=$((CURRENT_YEAR - 1))
-
-# Verificar que el archivo lflist.conf existe
-if [ ! -f "$LFLIST_FILE" ]; then
-    echo "Error: No se encontró el archivo $LFLIST_FILE"
-    exit 1
+# Paso 1: Clonar los repositorios
+echo "Clonando los repositorios..."
+if [ -d "$CONF_DIR" ]; then
+    rm -rf "$CONF_DIR"
 fi
+git clone "$CONF_REPO_URL" "$CONF_DIR"
 
-# Eliminar el directorio comparison-repo si ya existe
-if [ -d "comparison-repo" ]; then
-    rm -rf comparison-repo
+if [ -f "$LFLIST_FILE" ]; then
+    rm -f "$LFLIST_FILE"
 fi
+git clone "$LFLIST_REPO_URL" repo-koishi
+cp repo-koishi/mobile/assets/data/conf/lflist.conf "$LFLIST_FILE"
 
-# Clonar el repositorio de comparación
-git clone "$COMPARISON_REPO_URL" comparison-repo
-if [ $? -ne 0 ]; then
-    echo "Error: No se pudo clonar el repositorio de comparación."
-    exit 1
-fi
+# Crear el nuevo archivo lflist.conf para modificaciones
+cp "$LFLIST_FILE" "$NEW_LFLIST_FILE"
 
-# Extraer la primera línea del archivo que contiene las listas y guardar en INITIAL_LISTS
+# Paso 2: Verificación inicial e impresión de la lista
+echo "Contenido de la lista inicial (extraída del archivo original):"
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
+echo "$INITIAL_LISTS"
 
-# Mostrar el contenido almacenado en INITIAL_LISTS
-echo "Contenido de INITIAL_LISTS: $INITIAL_LISTS"
+# Filtrar solo los ítems del año en curso
+echo "Filtrando solo los ítems del año $CURRENT_YEAR..."
+CURRENT_YEAR_ITEMS=$(echo "$INITIAL_LISTS" | grep "$CURRENT_YEAR")
+COUNT_CURRENT_YEAR_ITEMS=$(echo "$CURRENT_YEAR_ITEMS" | wc -l)
 
-# Filtrar y mantener solo los ítems que contienen el año actual
-NEW_LIST="#"
-MATCHED_ITEMS=""
-COUNT_CURRENT_YEAR=0
+# Si hay 2 o menos ítems del año en curso, añadir los del año anterior
+if [ "$COUNT_CURRENT_YEAR_ITEMS" -le 2 ]; then
+    echo "Se encontraron $COUNT_CURRENT_YEAR_ITEMS ítems del año en curso. Añadiendo ítems del año anterior ($PREVIOUS_YEAR)..."
+    PREVIOUS_YEAR_ITEMS=$(echo "$INITIAL_LISTS" | grep "$PREVIOUS_YEAR")
+    CURRENT_YEAR_ITEMS="$CURRENT_YEAR_ITEMS"$'\n'"$PREVIOUS_YEAR_ITEMS"
+fi
 
-while IFS= read -r ITEM; do
-    echo "Recibido ITEM: $ITEM"  # Log para mostrar el ítem que se recibe
-    if echo "$ITEM" | grep -q "$CURRENT_YEAR"; then
-        NEW_LIST="${NEW_LIST}${ITEM}"
-        MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
-		COUNT_CURRENT_YEAR=$((COUNT_CURRENT_YEAR + 1))
-        echo "Guardado ITEM: $ITEM"  # Log para mostrar el ítem que se guarda
-    fi
-done <<< "$INITIAL_LISTS"
+# Imprimir los ítems del año en curso y (si es necesario) los del año anterior
+echo "Ítems del año en curso (y del año anterior si aplica):"
+echo "$CURRENT_YEAR_ITEMS"
 
-# Organizar los ítems de la Z a la A (alfabéticamente inverso)
-SORTED_ITEMS=$(echo "$MATCHED_ITEMS" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+# Paso 3: Verificar los ítems más recientes y dar prioridad a "TCG"
+echo "Verificando el ítem más reciente y dando prioridad a 'TCG'..."
+
+# Organizar los ítems numéricamente por año.mes.día de forma descendente
+SORTED_ITEMS=$(echo "$CURRENT_YEAR_ITEMS" | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
 # Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
 SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; else print $0, 0}' | sort -k2,2nr -k1,1)
 
-# Imprimir la lista organizada
-echo "Ítems filtrados y organizados de la Z a la A:"
-echo "$SORTED_ITEMS"
+# Imprimir los ítems ordenados y el más reciente
+echo "Ítems organizados desde el más reciente al más viejo (prioridad a 'TCG'):"
+echo "$SORTED_ITEMS" | cut -d' ' -f1  # Eliminar el indicador de '1' o '0'
 
-# Imprimir los ítems ordenados (sin los indicadores '1' y '0')
-echo "Ítems filtrados y organizados "
-echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1
+# Imprimir el ítem más reciente
+MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | cut -d' ' -f1 | head -n 1)
+echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
-# Si la cantidad de ítems del año actual es 2 o menos, incluir los del año anterior
-if [ "$COUNT_CURRENT_YEAR" -le 2 ]; then
-    while IFS= read -r ITEM; do
-        if echo "$ITEM" | grep -q "$PREVIOUS_YEAR"; then
-            NEW_LIST="${NEW_LIST}${ITEM}"
-            MATCHED_ITEMS="${MATCHED_ITEMS}${ITEM} "
-            echo "Añadiendo ITEM del año anterior: $ITEM"
-        fi
-    done <<< "$INITIAL_LISTS"
-fi
+# Fin del script, sin push al repositorio
+echo "Proceso completado sin realizar cambios en el repositorio."
 
-# Mostrar los ítems que cumplen con el año actual
-echo "Ítems que cumplen con el año $CURRENT_YEAR y $PREVIOUS_YEAR: $MATCHED_ITEMS"
-
-# Mostrar todos los ítems que comienzan con '!'
-echo "Ítems que comienzan con '!':"
-ITEMS_WITH_EXCLAMATION=$(grep '^!' "$LFLIST_FILE")
-echo "$ITEMS_WITH_EXCLAMATION"
-
-# Filtrar y mantener solo los ítems que corresponden al año actual
-while IFS= read -r ITEM; do
-    ITEM_NO_EXCLAMATION=$(echo "$ITEM" | cut -c2-)  # Remover el '!' para obtener el nombre del ítem
-    if echo "$ITEM_NO_EXCLAMATION" | grep -q "$CURRENT_YEAR"; then
-        echo "Manteniendo $ITEM"  # Log para mostrar los ítems que se mantienen
-    else
-        echo "Eliminando $ITEM del archivo lflist.conf"
-        sed -i "/^$ITEM/,/^$/d" "$LFLIST_FILE"
-    fi
-done <<< "$ITEMS_WITH_EXCLAMATION"
-
-# Comparar con los archivos .conf de otro repositorio y añadir los que no existan en lflist.conf
-for conf_file in comparison-repo/*.conf; do
-    if [ -f "$conf_file" ]; then
-        # Extraer la lista del archivo .conf actual que comienza con '!', manejando nombres con espacios
-        ITEM=$(grep -oP '^!\K.*' "$conf_file")
-        
-        if [ -z "$ITEM" ]; then
-            echo "No se encontró una lista válida en $conf_file"
-            continue
-        fi
-
-        # Omitir ítems que contengan "KS"
-        if echo "$ITEM" | grep -q "KS"; then
-            echo "Omitiendo $ITEM ya que contiene 'KS'"
-            continue
-        fi
-
-        # Comparar con las listas en lflist.conf
-        if echo "$ITEMS_WITH_EXCLAMATION" | grep -q "$ITEM"; then
-            echo "$ITEM de $conf_file ya se encuentra en lflist.conf"
-        else
-            echo "$ITEM de $conf_file NO se encuentra en lflist.conf. Añadiendo..."
-            # Añadir la lista al final de lflist.conf
-            cat "$conf_file" >> "$LFLIST_FILE"
-            echo "" >> "$LFLIST_FILE"  # Añadir una línea en blanco para separar las entradas
-
-            # Añadir la lista a la sección inicial de listas en la línea 1
-            NEW_LIST="${NEW_LIST} [${ITEM}]"
-        fi
-    fi
-done
-
-# Actualizar la línea 1 en el archivo para mantener solo los ítems que aún son válidos
-sed -i "1s|.*|${NEW_LIST}|" "$LFLIST_FILE"
-
-# Mostrar el contenido final del archivo lflist.conf
-echo "Contenido final del archivo lflist.conf después de las modificaciones:"
-cat "$LFLIST_FILE"
-
-# Clonar el repositorio de destino
-git clone "$DEST_REPO_URL" "$DEST_REPO_DIR"
-if [ $? -ne 0 ]; then
-    echo "Error: No se pudo clonar el repositorio de destino."
-    exit 1
-fi
-
-# Mover el archivo modificado al repositorio clonado
-mv "$LFLIST_FILE" "$DEST_REPO_DIR/"
-cd "$DEST_REPO_DIR"
-
-# Configurar Git
-git config user.name "GitHub Action"
-git config user.email "action@github.com"
-
-# Añadir, hacer commit y push
-git add "$LFLIST_FILE"
-git commit -m "Keep only items that match the current year and add missing lists from external .conf files, omitting those with 'KS' in the name"
-git push origin main  # Asegúrate de estar en la rama principal o ajusta la rama si es necesario
 
 
 
