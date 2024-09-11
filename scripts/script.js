@@ -82,7 +82,6 @@ function findListForItem(item, lflistData) {
   return listItem;
 }
 
-}
 
 // Función para verificar si hay cambios antes de realizar un commit
 function hasChanges() {
