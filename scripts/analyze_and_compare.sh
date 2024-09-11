@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables para los repositorios y archivos
-LFLIST_FILE="lflist.conf"  # Archivo lflist.conf que vamos a trabajar
+LFLIST_FILE="lflist.conf"  # Archivo original lflist.conf
 NEW_LFLIST_FILE="new_lflist.conf"  # Nuevo archivo lflist.conf donde haremos los cambios
 CONF_REPO_URL="https://github.com/termitaklk/lflist"  # Repositorio con los archivos .conf
 LFLIST_REPO_URL="https://github.com/fallenstardust/YGOMobile-cn-ko-en"  # Repositorio con el archivo lflist.conf
@@ -30,45 +30,39 @@ echo "Contenido de la lista inicial (extraída del archivo original):"
 INITIAL_LISTS=$(sed -n '1p' "$LFLIST_FILE" | grep -oP '\[[^\]]+\]')
 echo "$INITIAL_LISTS"
 
-# Filtrar solo los ítems del año en curso
-echo "Filtrando solo los ítems del año $CURRENT_YEAR..."
-CURRENT_YEAR_ITEMS=$(echo "$INITIAL_LISTS" | grep "$CURRENT_YEAR")
-COUNT_CURRENT_YEAR_ITEMS=$(echo "$CURRENT_YEAR_ITEMS" | wc -l)
-
-# Si hay 2 o menos ítems del año en curso, añadir los del año anterior
-if [ "$COUNT_CURRENT_YEAR_ITEMS" -le 2 ]; then
-    echo "Se encontraron $COUNT_CURRENT_YEAR_ITEMS ítems del año en curso. Añadiendo ítems del año anterior ($PREVIOUS_YEAR)..."
-    PREVIOUS_YEAR_ITEMS=$(echo "$INITIAL_LISTS" | grep "$PREVIOUS_YEAR")
-    CURRENT_YEAR_ITEMS="$CURRENT_YEAR_ITEMS"$'\n'"$PREVIOUS_YEAR_ITEMS"
-fi
-
-# Imprimir los ítems del año en curso y (si es necesario) los del año anterior
-echo "Ítems del año en curso (y del año anterior si aplica):"
-echo "$CURRENT_YEAR_ITEMS"
-
-# Paso 3: Verificar los ítems más recientes y dar prioridad a "TCG"
+# Paso 3: Ordenar los ítems y verificar el ítem más reciente
 echo "Verificando el ítem más reciente y dando prioridad a 'TCG'..."
 
-# Organizar los ítems numéricamente por año.mes.día de forma descendente, manteniendo los nombres completos
-SORTED_ITEMS=$(echo "$CURRENT_YEAR_ITEMS" | grep -oP '\[[^\]]+\]' | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
+SORTED_ITEMS=$(echo "$INITIAL_LISTS" | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
-# Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
-SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; else print $0, 0}' | sort -k2,2nr -k1,1)
+# Dar prioridad a 'TCG'
+SORTED_ITEMS=$(echo "$SORTED_ITEMS" | while IFS= read -r line; do
+    if [[ $line == *"TCG"* ]]; then
+        echo "$line 1"
+    else
+        echo "$line 0"
+    fi
+done | sort -k2,2nr -k1,1)
 
-# Imprimir los ítems ordenados correctamente, eliminando saltos de línea adicionales y preservando los corchetes
-echo "Ítems organizados desde el más reciente al más viejo (prioridad a 'TCG'):"
-echo "$SORTED_ITEMS"
-
-# Ordenar los ítems de más reciente a más viejo
-SORTED_ITEMS=$(echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1)
-
-# Imprimir el ítem más reciente, eliminando el indicador '1' o '0' sin cortar el ítem
+# Obtener el ítem más reciente
 MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//' | head -n 1)
-
 echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
-# Fin del script, sin push al repositorio
+# Paso 4: Añadir el ítem más reciente en la línea 1 del nuevo archivo lflist.conf
+echo "Añadiendo el ítem más reciente en la línea 1 del nuevo archivo lflist.conf..."
+sed -i "1s|^|#[$MOST_RECENT_ITEM] |" "$NEW_LFLIST_FILE"
+
+# Paso 5: Añadir la lista correspondiente al ítem más reciente en el nuevo archivo
+echo "Añadiendo la lista correspondiente del ítem más reciente..."
+grep "^!$MOST_RECENT_ITEM" "$LFLIST_FILE" >> "$NEW_LFLIST_FILE"
+
+# Mostrar el contenido del nuevo archivo para ver los cambios
+echo "Contenido del nuevo archivo lflist.conf:"
+cat "$NEW_LFLIST_FILE"
+
+# Fin del proceso sin realizar el push al repositorio
 echo "Proceso completado sin realizar cambios en el repositorio."
+
 
 
 
