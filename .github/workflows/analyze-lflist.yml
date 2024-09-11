@@ -1,15 +1,15 @@
-name: Analyze and Update lflist.conf
+name: Analyze and Compare lflist.conf
 
 on:
   push:
     branches:
-      - main  # O cualquier otra rama en la que desees que se ejecute el workflow
+      - main
   schedule:
-    - cron: '*/2 * * * *'  # Se ejecuta cada 2 minutos para verificar cambios
-  workflow_dispatch:  # Permite ejecutar manualmente la acción desde la interfaz de GitHub
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
-  analyze-lflist:
+  analyze-file:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,24 +17,23 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v2
       with:
-        node-version: '16'  # Puedes cambiar a la versión que uses, como '18'
+        node-version: '14'
 
     - name: Install dependencies
-      run: npm install  # Si tu script usa algún módulo adicional, instala las dependencias aquí
+      run: npm install
 
-    - name: Run lflist script
+    - name: Run Node.js script
+      env: 
+        TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Pasar el token como variable de entorno
       run: node scripts/script.js
-      env:
-        TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # El token de autenticación para el repositorio destino
 
     - name: Upload result as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: lflist-output
-        path: scripts/lflist.conf  # Ruta del archivo final generado
-
+        name: lflist-analysis
+        path: scripts/lflist.conf
 
 
 
