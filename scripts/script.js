@@ -160,7 +160,7 @@ function listItemsInAlphabeticalOrder(confRepoPath) {
   items.forEach(item => console.log(item));
 
   return items;
-}
+
 
   // Añadir el archivo modificado
   execSync(`git add ${LFLIST_FILE}`);
