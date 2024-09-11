@@ -136,7 +136,11 @@ function listItemsInAlphabeticalOrder(confRepoPath) {
     // Extraer los ítems que comienzan con "!", incluyendo los que contienen espacios
     const fileItems = fileData.match(/^!.+/gm);
     if (fileItems) {
-      items = items.concat(fileItems.map(item => item.replace(/^!/, ''))); // Quitar el "!"
+      // Omitir los ítems que contengan "KS" en su nombre
+      const filteredItems = fileItems.filter(item => !item.includes('KS'));
+
+      // Quitar el "!" y añadir a la lista de ítems
+      items = items.concat(filteredItems.map(item => item.replace(/^!/, '')));
     }
   });
 
