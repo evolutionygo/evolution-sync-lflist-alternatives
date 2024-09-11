@@ -63,7 +63,7 @@ echo "Ítems filtrados y organizados 3 "
 echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1
 
 # Imprimir el ítem más reciente
-MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//' | head -n 1)
+MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | head -n 1)
 echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
 # Fin del script, sin push al repositorio
