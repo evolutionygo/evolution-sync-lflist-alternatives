@@ -13,7 +13,7 @@ const TOKEN = process.env.TOKEN;
 // URL del repositorio de destino, usando el token
 const DEST_REPO_URL = `https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git`;
 
-// Función para clonar un repositorio
+// Función para clonar un repositorio en un directorio específico
 function cloneRepo(repoUrl, targetDir) {
   if (fs.existsSync(targetDir)) {
     fs.rmSync(targetDir, { recursive: true, force: true });
@@ -163,7 +163,7 @@ function moveAndPush() {
 
 // Main
 function main() {
-  // Clonar repositorios
+  // Clonar repositorios en directorios separados
   cloneRepo('https://github.com/fallenstardust/YGOMobile-cn-ko-en', 'repo-koishi');
   cloneRepo('https://github.com/termitaklk/lflist', 'comparison-repo');
 
@@ -200,11 +200,7 @@ function main() {
   cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
   moveAndPush();
 
-  // Listar ítems de los archivos .conf en orden alfabético
-  listItemsInAlphabeticalOrder('comparison-repo');
-}
-
-main(); // Inicia el proceso
+  // Listar ítems de los archivos
 
 
 
