@@ -69,10 +69,19 @@ function writeFinalLflist(mostRecentItem, listItem) {
   console.log(`Archivo final lflist.conf creado con el ítem más reciente: ${header}`);
 }
 
-// Función para encontrar la lista correspondiente al ítem más reciente
 function findListForItem(item, lflistData) {
   const lines = lflistData.split('\n');
-  return lines.find(line => line.startsWith(`!${item}`));
+  const listItem = lines.find(line => line.startsWith(`!${item}`));
+
+  if (!listItem) {
+    console.log(`No se encontró una lista para el ítem: ${item}`);
+  } else {
+    console.log(`Lista encontrada para el ítem ${item}: ${listItem}`);
+  }
+
+  return listItem;
+}
+
 }
 
 // Función para verificar si hay cambios antes de realizar un commit
