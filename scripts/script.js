@@ -69,12 +69,23 @@ function writeFinalLflist(mostRecentItem, listItem) {
   console.log(`Archivo final lflist.conf creado con el ítem más reciente: ${header}`);
 }
 
+// Función para encontrar la lista correspondiente al ítem más reciente
 function findListForItem(item, lflistData) {
   const lines = lflistData.split('\n');
-  const listItem = lines.find(line => line.startsWith(`!${item}`));
+  let listItem = lines.find(line => line.startsWith(`!${item}`));
 
   if (!listItem) {
-    console.log(`No se encontró una lista para el ítem: ${item}`);
+    console.log(`No se encontró una lista para el ítem: ${item}, intentando añadir 0 al mes...`);
+
+    // Si no encuentra el ítem, intenta añadir un 0 en el mes si el formato es año.mes
+    const itemWithZero = item.replace(/(\d{4})\.(\d)(\b)/, '$1.0$2');  // Añade el 0 si el mes tiene solo 1 dígito
+    listItem = lines.find(line => line.startsWith(`!${itemWithZero}`));
+
+    if (listItem) {
+      console.log(`Lista encontrada para el ítem (con 0 añadido): ${itemWithZero}: ${listItem}`);
+    } else {
+      console.log(`No se encontró una lista para el ítem (ni con el 0 añadido): ${item}`);
+    }
   } else {
     console.log(`Lista encontrada para el ítem ${item}: ${listItem}`);
   }
