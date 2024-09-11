@@ -103,7 +103,17 @@ function findListForItem(item, lflistData) {
 
 // Función para recorrer los archivos .conf en el repositorio de comparación y listar ítems en orden alfabético
 function listItemsInAlphabeticalOrder(confRepoPath) {
+  if (!fs.existsSync(confRepoPath)) {
+    console.error(`Error: El directorio ${confRepoPath} no existe.`);
+    return;
+  }
+
   const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
+
+  if (confFiles.length === 0) {
+    console.error('No se encontraron archivos .conf en el directorio de comparación.');
+    return;
+  }
 
   let items = [];
 
@@ -156,6 +166,12 @@ function main() {
   // Clonar repositorios
   cloneRepo('https://github.com/fallenstardust/YGOMobile-cn-ko-en', 'repo-koishi');
   cloneRepo('https://github.com/termitaklk/lflist', 'comparison-repo');
+
+  // Verificar si el directorio de comparación existe
+  if (!fs.existsSync('comparison-repo')) {
+    console.error('Error: El directorio comparison-repo no se creó correctamente.');
+    process.exit(1);  // Salir con error si no se puede acceder al directorio
+  }
 
   // Leer el archivo lflist.conf
   const lflistData = fs.readFileSync(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE), 'utf8');
