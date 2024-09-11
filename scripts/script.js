@@ -77,13 +77,35 @@ function findListForItem(item, lflistData) {
 
 // Función para mover y hacer push al repositorio de destino
 function moveAndPush() {
+  // Mover el archivo lflist.conf al directorio clonado
   execSync(`mv scripts/${LFLIST_FILE} koishi-Iflist/`);
   process.chdir('koishi-Iflist');
+
+  // Configurar Git
   execSync('git config user.name "GitHub Action"');
   execSync('git config user.email "action@github.com"');
+
+  // Realizar un pull para traer cualquier cambio previo
+  try {
+    execSync('git pull origin main');
+    console.log('Cambios del repositorio remoto traídos correctamente.');
+  } catch (error) {
+    console.error('Error al hacer git pull:', error);
+  }
+
+  // Añadir el archivo modificado
   execSync(`git add ${LFLIST_FILE}`);
-  execSync('git commit -m "Add updated lflist.conf"');
-  execSync('git push origin main');
+
+  // Crear un nuevo commit
+  execSync('git commit -m "Update lflist.conf with the latest changes"');
+
+  // Hacer push de los cambios
+  try {
+    execSync('git push origin main');
+    console.log('Cambios enviados al repositorio correctamente.');
+  } catch (error) {
+    console.error('Error al hacer git push:', error);
+  }
 }
 
 // Main
@@ -121,6 +143,7 @@ function main() {
 }
 
 main(); // Inicia el proceso
+
 
 
 
