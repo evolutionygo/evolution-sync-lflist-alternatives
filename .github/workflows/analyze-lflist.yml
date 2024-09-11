@@ -25,6 +25,8 @@ jobs:
       run: npm install
 
     - name: Run Node.js script
+      env: 
+        TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Pasar el token como variable de entorno
       run: node scripts/script.js
 
     - name: Verify new_lflist.conf existence
@@ -36,24 +38,11 @@ jobs:
           echo "El archivo new_lflist.conf fue generado correctamente."
         fi
 
-    - name: Clone the destination repository
-      run: |
-        git clone https://github.com/termitaklk/koishi-Iflist.git koishi-Iflist
-        if [ $? -ne 0 ]; then
-            echo "Error: No se pudo clonar el repositorio de destino."
-            exit 1
-        fi
+    - name: Upload result as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: lflist-analysis
+        path: scripts/new_lflist.conf
 
-    - name: Move and commit the updated lflist.conf
-      run: |
-        mv scripts/new_lflist.conf koishi-Iflist/
-        cd koishi-Iflist
-        git config user.name "GitHub Action"
-        git config user.email "action@github.com"
-        git add new_lflist.conf
-        git commit -m "Keep only items that match the current year and add missing lists from external .conf files, omitting those with 'KS' in the name"
-        git push origin main  # Push a la rama principal
-      env:
-        GITHUB_TOKEN: ${{ secrets.DEST_REPO_TOKEN }}  # Utilizar el token secreto
 
 
