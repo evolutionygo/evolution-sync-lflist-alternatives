@@ -132,10 +132,15 @@ function listItemsInAlphabeticalOrder(confRepoPath) {
   // Ordenar alfabéticamente
   const sortedItems = items.sort((a, b) => a.localeCompare(b));
 
+  // Log: Imprimir la lista de ítems clonados
+  console.log('Lista de ítems clonados desde comparison-repo:');
+  console.log(sortedItems); // Log para ver la lista clonada
+
   // Imprimir los ítems ordenados
   console.log('Ítems de archivos .conf en orden alfabético:');
   sortedItems.forEach(item => console.log(item));
 }
+
 
 // Función para verificar si hay cambios antes de hacer commit
 function hasChanges() {
