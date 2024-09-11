@@ -72,26 +72,35 @@ function writeFinalLflist(mostRecentItem, listItem) {
 // Función para encontrar la lista correspondiente al ítem más reciente
 function findListForItem(item, lflistData) {
   const lines = lflistData.split('\n');
-  let listItem = lines.find(line => line.startsWith(`!${item}`));
+  let startIndex = lines.findIndex(line => line.startsWith(`!${item}`));
 
-  if (!listItem) {
+  if (startIndex === -1) {
     console.log(`No se encontró una lista para el ítem: ${item}, intentando añadir 0 al mes...`);
 
     // Si no encuentra el ítem, intenta añadir un 0 en el mes si el formato es año.mes
     const itemWithZero = item.replace(/(\d{4})\.(\d)(\b)/, '$1.0$2');  // Añade el 0 si el mes tiene solo 1 dígito
-    listItem = lines.find(line => line.startsWith(`!${itemWithZero}`));
+    startIndex = lines.findIndex(line => line.startsWith(`!${itemWithZero}`));
 
-    if (listItem) {
-      console.log(`Lista encontrada para el ítem (con 0 añadido): ${itemWithZero}: ${listItem}`);
-    } else {
+    if (startIndex === -1) {
       console.log(`No se encontró una lista para el ítem (ni con el 0 añadido): ${item}`);
+      return null;
+    } else {
+      console.log(`Lista encontrada para el ítem (con 0 añadido): ${itemWithZero}`);
     }
   } else {
-    console.log(`Lista encontrada para el ítem ${item}: ${listItem}`);
+    console.log(`Lista encontrada para el ítem ${item}`);
   }
 
-  return listItem;
+  // Capturar todas las líneas de la lista hasta el siguiente ítem que comienza con "!"
+  const listItem = [];
+  for (let i = startIndex; i < lines.length; i++) {
+    if (lines[i].startsWith('!') && i !== startIndex) break; // Si comienza otro ítem, detener
+    listItem.push(lines[i]);
+  }
+
+  return listItem.join('\n');
 }
+
 
 
 // Función para verificar si hay cambios antes de realizar un commit
