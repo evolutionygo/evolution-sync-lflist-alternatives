@@ -49,13 +49,19 @@ echo "$CURRENT_YEAR_ITEMS"
 # Paso 3: Verificar los ítems más recientes y dar prioridad a "TCG"
 echo "Verificando el ítem más reciente y dando prioridad a 'TCG'..."
 
-# Organizar los ítems numéricamente por año.mes.día de forma descendente
+# Organizar los ítems numéricamente por año.mes.día de forma descendente, manteniendo los nombres completos
 SORTED_ITEMS=$(echo "$CURRENT_YEAR_ITEMS" | sort -r -t '.' -k1,1n -k2,2n -k3,3n)
 
 # Si dos ítems tienen el mismo año y mes, dar prioridad al que contiene "TCG"
-SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; else print $0, 0}' | sort -k2,2nr -k1,1)
+SORTED_ITEMS=$(echo "$SORTED_ITEMS" | while IFS= read -r line; do
+    if [[ $line == *"TCG"* ]]; then
+        echo "$line 1"
+    else
+        echo "$line 0"
+    fi
+done | sort -k2,2nr -k1,1)
 
-# Imprimir los ítems ordenados y el más reciente
+# Imprimir los ítems ordenados y el más reciente, sin truncar los nombres
 echo "Ítems organizados desde el más reciente al más viejo (prioridad a 'TCG'):"
 echo "$SORTED_ITEMS" | cut -d' ' -f1  # Eliminar el indicador de '1' o '0'
 
@@ -65,6 +71,7 @@ echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
 # Fin del script, sin push al repositorio
 echo "Proceso completado sin realizar cambios en el repositorio."
+
 
 
 
