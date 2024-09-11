@@ -4,7 +4,6 @@ const path = require('path');
 
 // Variables
 const LFLIST_FILE = 'lflist.conf';
-const NEW_LFLIST_FILE = 'new_lflist.conf';
 const CURRENT_YEAR = new Date().getFullYear();
 const PREVIOUS_YEAR = CURRENT_YEAR - 1;
 
@@ -61,14 +60,14 @@ function prioritizeTCG(sortedLists) {
   });
 }
 
-// Función para escribir el nuevo archivo lflist.conf
-function writeNewLflist(mostRecentItem, listItem) {
+// Función para escribir el archivo final lflist.conf
+function writeFinalLflist(mostRecentItem, listItem) {
   const header = `#[${mostRecentItem}]`;
-  const filePath = path.join('scripts', NEW_LFLIST_FILE);
+  const filePath = path.join('scripts', LFLIST_FILE);
 
   fs.writeFileSync(filePath, `${header}\n${listItem || ''}`);
-  console.log(`Nuevo archivo lflist.conf creado con el ítem más reciente: ${header}`);
-
+  console.log(`Archivo final lflist.conf creado con el ítem más reciente: ${header}`);
+}
 
 // Función para encontrar la lista correspondiente al ítem más reciente
 function findListForItem(item, lflistData) {
@@ -78,50 +77,10 @@ function findListForItem(item, lflistData) {
 
 // Función para mover y hacer push al repositorio de destino
 function moveAndPush() {
-  execSync(`mv scripts/${NEW_LFLIST_FILE} koishi-Iflist/`);
+  execSync(`mv scripts/${LFLIST_FILE} koishi-Iflist/`);
   process.chdir('koishi-Iflist');
-  execSync('git config user.name "GitHub Action"');
-  execSync('git config user.email "action@github.com"');
-  execSync(`git add ${NEW_LFLIST_FILE}`);
-  execSync('git commit -m "Add updated lflist.conf"');
-  execSync('git push origin main');
-}
+  execSync('git config user.name "Git
 
-// Main
-function main() {
-  // Clonar repositorios
-  cloneRepo('https://github.com/fallenstardust/YGOMobile-cn-ko-en', 'repo-koishi');
-  cloneRepo('https://github.com/termitaklk/lflist', 'comparison-repo');
-
-  // Leer el archivo lflist.conf
-  const lflistData = fs.readFileSync(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE), 'utf8');
-  const lists = readLflist(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
-
-  // Filtrar por año en curso y año anterior
-  const filteredLists = filterByYear(lists);
-
-  // Ordenar las listas por fecha
-  const sortedLists = sortByDate(filteredLists);
-
-  // Priorizar TCG si hay empate
-  const prioritizedLists = prioritizeTCG(sortedLists);
-
-  // Obtener el ítem más reciente
-  const mostRecentItem = prioritizedLists[0].replace(/[\[\]]/g, ''); // Sin corchetes
-  console.log(`El ítem más reciente es: ${mostRecentItem}`);
-
-  // Buscar la lista correspondiente al ítem más reciente
-  const listItem = findListForItem(mostRecentItem, lflistData);
-
-  // Escribir el nuevo archivo lflist.conf
-  writeNewLflist(mostRecentItem, listItem);
-
-  // Clonar el repositorio de destino, mover el archivo y hacer push
-  cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
-  moveAndPush();
-}
-
-main();
 
 
 
