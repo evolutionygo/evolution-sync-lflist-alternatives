@@ -8,6 +8,12 @@ const NEW_LFLIST_FILE = 'new_lflist.conf';
 const CURRENT_YEAR = new Date().getFullYear();
 const PREVIOUS_YEAR = CURRENT_YEAR - 1;
 
+// Obtener el token de las variables de entorno
+const TOKEN = process.env.TOKEN;
+
+// URL del repositorio de destino, usando el token
+const DEST_REPO_URL = `https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git`;
+
 // Función para clonar un repositorio
 function cloneRepo(repoUrl, targetDir) {
   if (fs.existsSync(targetDir)) {
@@ -58,7 +64,7 @@ function prioritizeTCG(sortedLists) {
 // Función para escribir el nuevo archivo lflist.conf
 function writeNewLflist(mostRecentItem, listItem) {
   const header = `#[${mostRecentItem}]`;
-  const filePath = path.join('scripts', 'new_lflist.conf');
+  const filePath = path.join('scripts', NEW_LFLIST_FILE);
 
   fs.writeFileSync(filePath, `${header}\n${listItem || ''}`);
   console.log(`Nuevo archivo lflist.conf creado con el ítem más reciente: ${header}`);
@@ -75,6 +81,17 @@ function writeNewLflist(mostRecentItem, listItem) {
 function findListForItem(item, lflistData) {
   const lines = lflistData.split('\n');
   return lines.find(line => line.startsWith(`!${item}`));
+}
+
+// Función para mover y hacer push al repositorio de destino
+function moveAndPush() {
+  execSync(`mv scripts/${NEW_LFLIST_FILE} koishi-Iflist/`);
+  process.chdir('koishi-Iflist');
+  execSync('git config user.name "GitHub Action"');
+  execSync('git config user.email "action@github.com"');
+  execSync(`git add ${NEW_LFLIST_FILE}`);
+  execSync('git commit -m "Add updated lflist.conf"');
+  execSync('git push origin main');
 }
 
 // Main
@@ -105,9 +122,14 @@ function main() {
 
   // Escribir el nuevo archivo lflist.conf
   writeNewLflist(mostRecentItem, listItem);
+
+  // Clonar el repositorio de destino, mover el archivo y hacer push
+  cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
+  moveAndPush();
 }
 
 main();
+
 
 
 
