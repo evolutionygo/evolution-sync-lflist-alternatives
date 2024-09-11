@@ -59,11 +59,12 @@ SORTED_ITEMS=$(echo "$SORTED_ITEMS" | awk '{if (match($0, /TCG/)) print $0, 1; e
 echo "Ítems organizados desde el más reciente al más viejo (prioridad a 'TCG'):"
 echo "$SORTED_ITEMS"
 
-echo "Ítems filtrados y organizados 3 "
-echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1
+# Ordenar los ítems de más reciente a más viejo
+SORTED_ITEMS=$(echo "$SORTED_ITEMS" | sort -r -k2,2nr -k1,1)
 
-# Imprimir el ítem más reciente sin el indicador de prioridad '1' o '0'
-MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | cut -d' ' -f1 | head -n 1)
+# Imprimir el ítem más reciente, eliminando el indicador '1' o '0' sin cortar el ítem
+MOST_RECENT_ITEM=$(echo "$SORTED_ITEMS" | awk '{$NF=""; print $0}' | sed 's/[[:space:]]*$//' | head -n 1)
+
 echo "El ítem más reciente es: $MOST_RECENT_ITEM"
 
 # Fin del script, sin push al repositorio
