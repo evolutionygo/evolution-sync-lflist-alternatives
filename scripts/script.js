@@ -25,16 +25,15 @@ function cloneRepo(repoUrl, targetDir) {
     fs.rmSync(targetDir, { recursive: true, force: true });
   }
   execSync(`git clone ${repoUrl} ${targetDir}`);
-  console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
 }
 
-// Función para leer el archivo lflist.conf y devolver las listas que comienzan con '!'
+// Función para leer los ítems de lflist.conf
 function readLflistItems(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
-  return data.match(/^!\S+/gm) || []; // Obtener las listas que comienzan con '!'
+  return data.match(/^!\S+/gm) || [];
 }
 
-// Función para recorrer los archivos .conf y devolver los ítems que comienzan con '!'
+// Función para leer los ítems de los archivos .conf
 function readConfItems(confRepoPath) {
   const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
   let items = [];
@@ -43,7 +42,7 @@ function readConfItems(confRepoPath) {
     const fileData = fs.readFileSync(filePath, 'utf8');
     const fileItems = fileData.match(/^!\S+/gm);
     if (fileItems) {
-      items = items.concat(fileItems.map(item => item.replace(/^!/, ''))); // Quitar el "!"
+      items = items.concat(fileItems.map(item => item.replace(/^!/, '')));
     }
   });
   return items;
@@ -51,8 +50,7 @@ function readConfItems(confRepoPath) {
 
 // Función para ordenar y filtrar ítems en función del objeto banlistsOrder
 function filterAndSortItems(items) {
-  const sortedItems = Object.values(banlistsOrder).filter(orderItem => items.includes(orderItem));
-  return sortedItems;
+  return Object.values(banlistsOrder).filter(orderItem => items.includes(orderItem));
 }
 
 // Función para escribir el archivo final lflist.conf con las listas filtradas y ordenadas
@@ -61,7 +59,6 @@ function writeFinalLflist(sortedItems) {
   const header = "# Listas Generadas según el orden establecido\n";
   const content = sortedItems.map(item => `!${item}`).join('\n');
   fs.writeFileSync(filePath, `${header}${content}`);
-  console.log(`Archivo final lflist.conf creado con las listas ordenadas:\n${content}`);
 }
 
 // Main
@@ -70,10 +67,8 @@ function main() {
   cloneRepo('https://github.com/fallenstardust/YGOMobile-cn-ko-en', 'repo-koishi');
   cloneRepo('https://github.com/termitaklk/lflist', 'comparison-repo');
 
-  // Leer los ítems de lflist.conf
+  // Leer los ítems de lflist.conf y archivos .conf
   const lflistItems = readLflistItems(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
-
-  // Leer los ítems de los archivos .conf
   const confItems = readConfItems('comparison-repo');
 
   // Combinar ítems de lflist.conf y .conf
@@ -86,7 +81,8 @@ function main() {
   writeFinalLflist(sortedItems);
 }
 
-main(); // Iniciar el proceso
+main(); // Ejecutar el proceso
+
 
 
 
