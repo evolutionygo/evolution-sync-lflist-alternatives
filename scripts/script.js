@@ -12,7 +12,7 @@ let combinedItems = [];
 const banlistsOrder = {
   1: "2024.9 TCG",
   2: "Edison(PreErrata)",
-  3: "HAT",
+  3: "2014.4 HAT",
   4: "2011.09 Tengu Plant",
   5: "MD 08.2024",
   6: "JTP (Original)",
@@ -65,6 +65,11 @@ function extractItemsFromConfFiles(confRepoPath) {
   });
 }
 
+// Normalizar ítems (elimina caracteres especiales y espacios extra)
+function normalizeItem(item) {
+  return item.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+}
+
 // Función para ordenar los ítems según el objeto `banlistsOrder`
 function filterAndOrderItems() {
   const orderedItems = [];
@@ -73,10 +78,16 @@ function filterAndOrderItems() {
   for (const key in banlistsOrder) {
     const listName = banlistsOrder[key];
 
-    // Buscar el ítem en la lista combinada
-    const item = combinedItems.find(i => i.includes(listName));
+    // Normalizar para buscar coincidencias parciales
+    const normalizedListName = normalizeItem(listName);
+
+    // Buscar el ítem en la lista combinada usando la versión normalizada
+    const item = combinedItems.find(i => normalizeItem(i).includes(normalizedListName));
+    
     if (item) {
       orderedItems.push(item); // Agregar el ítem en el orden correcto
+    } else {
+      console.log(`No se encontró el ítem: ${listName}`);
     }
   }
 
@@ -141,6 +152,7 @@ function main() {
 }
 
 main(); // Inicia el proceso
+
 
 
 
