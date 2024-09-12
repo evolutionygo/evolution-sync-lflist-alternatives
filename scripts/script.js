@@ -35,36 +35,48 @@ function cloneRepo(repoUrl, targetDir) {
   console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
 }
 
-// Función para listar los ítems que comienzan con '!' de un archivo
-function listItems(filePath) {
+// Función para leer el archivo lflist.conf y devolver las listas que empiezan con '!'
+function readLflist(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
-  const items = data.match(/^!\[.*\]$/gm); // Obtener los ítems que comienzan con '!' y pueden tener espacios
-  return items ? items.map(item => item.replace(/^!/, '').trim()) : [];
+  const lists = data.match(/^!.+/gm); // Obtener las listas que comienzan con '!'
+  return lists ? lists.map(item => item.replace(/^!/, '')) : [];
 }
 
-// Función para listar todos los ítems de los dos repositorios
-function listAllItems() {
-  let allItems = [];
+// Función para recorrer los archivos .conf en el repositorio de comparación y listar ítems
+function listItemsInAlphabeticalOrder(confRepoPath) {
+  if (!fs.existsSync(confRepoPath)) {
+    console.error(`Error: El directorio ${confRepoPath} no existe.`);
+    return [];
+  }
+  
+  const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
 
-  // Leer el archivo lflist.conf del primer repositorio
-  const lflistItems = listItems(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
-  allItems = allItems.concat(lflistItems);
+  if (confFiles.length === 0) {
+    console.error('No se encontraron archivos .conf en el directorio de comparación.');
+    return [];
+  }
 
-  // Leer los archivos .conf del segundo repositorio
-  const confFiles = fs.readdirSync('comparison-repo').filter(file => file.endsWith('.conf'));
+  let items = [];
+
+  // Recorrer cada archivo .conf
   confFiles.forEach(file => {
-    const filePath = path.join('comparison-repo', file);
-    const confItems = listItems(filePath);
-    allItems = allItems.concat(confItems);
+    const filePath = path.join(confRepoPath, file);
+    const fileData = fs.readFileSync(filePath, 'utf8');
+
+    // Extraer los ítems que comienzan con '!', incluyendo los que contienen espacios
+    const fileItems = fileData.match(/^!.+/gm);
+
+    if (fileItems) {
+      // Omitir los ítems que contengan "KS" en su nombre
+      const filteredItems = fileItems.filter(item => !item.includes('KS'));
+
+      // Quitar el "!" y añadir a la lista de ítems
+      items = items.concat(filteredItems.map(item => item.replace(/^!/, '')));
+    }
   });
 
-  return allItems;
-}
-
-// Función para imprimir los ítems en consola
-function printItems(items) {
-  console.log('Lista de ítems:');
-  items.forEach(item => console.log(item));
+  // Ordenar alfabéticamente los ítems
+  return items.sort((a, b) => a.localeCompare(b));
 }
 
 // Función para ordenar los ítems según el objeto banlistsOrder
@@ -111,14 +123,19 @@ function main() {
   cloneRepo('https://github.com/fallenstardust/YGOMobile-cn-ko-en', 'repo-koishi');
   cloneRepo('https://github.com/termitaklk/lflist', 'comparison-repo');
 
-  // Listar todos los ítems
-  const allItems = listAllItems();
-  printItems(allItems); // Imprimir los ítems antes de ordenarlos
+  // Listar todos los ítems del archivo lflist.conf y los archivos .conf
+  const lflistItems = readLflist(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
+  const confItems = listItemsInAlphabeticalOrder('comparison-repo');
+  const allItems = lflistItems.concat(confItems);
+
+  console.log('Lista de ítems antes de ordenar:');
+  allItems.forEach(item => console.log(item));
 
   // Ordenar los ítems según el objeto banlistsOrder
   const sortedItems = sortItemsByBanlistOrder(allItems);
-  console.log('Ítems ordenados según banlistsOrder:');
-  printItems(sortedItems);
+  
+  console.log('Lista de ítems después de ordenar:');
+  sortedItems.forEach(item => console.log(item));
 
   // Escribir el archivo final lflist.conf
   writeFinalLflist(sortedItems);
@@ -129,6 +146,7 @@ function main() {
 }
 
 main(); // Inicia el proceso
+
 
 
 
