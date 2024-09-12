@@ -4,6 +4,13 @@ const path = require('path');
 
 // Variables
 const LFLIST_FILE = 'lflist.conf';
+const CURRENT_YEAR = new Date().getFullYear();
+const TOKEN = process.env.TOKEN;
+
+// URL del repositorio de destino, usando el token
+const DEST_REPO_URL = `https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git`;
+
+// Objeto para especificar las listas que deben permanecer y su orden
 const banlistsOrder = {
   1: "2024.09 TCG",
   2: "Edison(PreErrata)",
@@ -28,47 +35,74 @@ function cloneRepo(repoUrl, targetDir) {
   console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
 }
 
-// Función para leer los ítems de lflist.conf
-function readLflistItems(filePath) {
+// Función para listar los ítems que comienzan con '!' de un archivo
+function listItems(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
-  console.log('Contenido de lflist.conf:', data); // Mostrar contenido de lflist.conf para depuración
-  const lists = data.match(/^!\[[^\]]+\]/gm); // Capturar ítems con espacios entre corchetes []
-  console.log('Ítems encontrados en lflist.conf:', lists); // Log para depuración
-  return lists || [];
+  const items = data.match(/^!\[.*\]$/gm); // Obtener los ítems que comienzan con '!' y pueden tener espacios
+  return items ? items.map(item => item.replace(/^!/, '').trim()) : [];
 }
 
-// Función para leer los ítems de los archivos .conf
-function readConfItems(confRepoPath) {
-  const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
-  console.log('Archivos .conf encontrados:', confFiles); // Mostrar archivos .conf encontrados para depuración
-  let items = [];
+// Función para listar todos los ítems de los dos repositorios
+function listAllItems() {
+  let allItems = [];
+
+  // Leer el archivo lflist.conf del primer repositorio
+  const lflistItems = listItems(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
+  allItems = allItems.concat(lflistItems);
+
+  // Leer los archivos .conf del segundo repositorio
+  const confFiles = fs.readdirSync('comparison-repo').filter(file => file.endsWith('.conf'));
   confFiles.forEach(file => {
-    const filePath = path.join(confRepoPath, file);
-    const fileData = fs.readFileSync(filePath, 'utf8');
-    console.log(`Contenido del archivo ${file}:`, fileData); // Mostrar contenido de cada archivo .conf para depuración
-    const fileItems = fileData.match(/^!\[[^\]]+\]/gm); // Capturar ítems completos, incluso con espacios
-    if (fileItems) {
-      items = items.concat(fileItems.map(item => item.replace(/^!/, ''))); // Eliminar el "!" y mantener el nombre completo
+    const filePath = path.join('comparison-repo', file);
+    const confItems = listItems(filePath);
+    allItems = allItems.concat(confItems);
+  });
+
+  return allItems;
+}
+
+// Función para imprimir los ítems en consola
+function printItems(items) {
+  console.log('Lista de ítems:');
+  items.forEach(item => console.log(item));
+}
+
+// Función para ordenar los ítems según el objeto banlistsOrder
+function sortItemsByBanlistOrder(items) {
+  const sortedItems = [];
+
+  Object.keys(banlistsOrder).forEach(key => {
+    const banlistName = banlistsOrder[key];
+    const matchingItem = items.find(item => item.includes(banlistName));
+    if (matchingItem) {
+      sortedItems.push(matchingItem);
     }
   });
-  console.log('Ítems encontrados en archivos .conf:', items); // Log para depuración
-  return items;
-}
 
-// Función para ordenar y filtrar ítems en función del objeto banlistsOrder
-function filterAndSortItems(items) {
-  const sortedItems = Object.values(banlistsOrder).filter(orderItem => items.includes(orderItem));
-  console.log('Ítems después de filtrar y ordenar:', sortedItems); // Log para depuración
   return sortedItems;
 }
 
-// Función para escribir el archivo final lflist.conf con las listas filtradas y ordenadas
+// Función para escribir el archivo lflist.conf final
 function writeFinalLflist(sortedItems) {
   const filePath = path.join('scripts', LFLIST_FILE);
-  const header = "# Listas Generadas según el orden establecido\n";
+  const header = '# Listas Generadas según el orden establecido\n';
   const content = sortedItems.map(item => `!${item}`).join('\n');
-  fs.writeFileSync(filePath, `${header}${content}`);
-  console.log(`Archivo final lflist.conf creado con los ítems ordenados.`);
+
+  fs.writeFileSync(filePath, `${header}\n${content}`);
+  console.log('Archivo lflist.conf generado correctamente con los ítems ordenados.');
+}
+
+// Función para mover y hacer push al repositorio de destino
+function moveAndPush() {
+  execSync(`mv scripts/${LFLIST_FILE} koishi-Iflist/`);
+  process.chdir('koishi-Iflist');
+  execSync('git config user.name "GitHub Action"');
+  execSync('git config user.email "action@github.com"');
+
+  execSync(`git add ${LFLIST_FILE}`);
+  execSync('git commit -m "Update lflist.conf with the sorted banlist items"');
+  execSync('git push origin main');
+  console.log('Cambios subidos al repositorio.');
 }
 
 // Main
@@ -77,31 +111,25 @@ function main() {
   cloneRepo('https://github.com/fallenstardust/YGOMobile-cn-ko-en', 'repo-koishi');
   cloneRepo('https://github.com/termitaklk/lflist', 'comparison-repo');
 
-  // Leer los ítems de lflist.conf y archivos .conf
-  const lflistItems = readLflistItems(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
-  const confItems = readConfItems('comparison-repo');
+  // Listar todos los ítems
+  const allItems = listAllItems();
+  printItems(allItems); // Imprimir los ítems antes de ordenarlos
 
-  // Combinar ítems de lflist.conf y .conf
-  const combinedItems = [...new Set([...lflistItems, ...confItems])];
-
-  // Mostrar la lista de ítems antes de ordenarlas
-  console.log('Lista de ítems antes de ordenar:');
-  console.log(combinedItems);
-
-  // Filtrar y ordenar ítems según el objeto banlistsOrder
-  const sortedItems = filterAndSortItems(combinedItems);
-
-  // Mostrar cómo se compara cada ítem con el objeto banlistsOrder
-  sortedItems.forEach(item => {
-    const order = Object.keys(banlistsOrder).find(key => banlistsOrder[key] === item);
-    console.log(`Ítem: ${item} | Posición en banlistsOrder: ${order}`);
-  });
+  // Ordenar los ítems según el objeto banlistsOrder
+  const sortedItems = sortItemsByBanlistOrder(allItems);
+  console.log('Ítems ordenados según banlistsOrder:');
+  printItems(sortedItems);
 
   // Escribir el archivo final lflist.conf
   writeFinalLflist(sortedItems);
+
+  // Subir los cambios al repositorio de destino
+  cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
+  moveAndPush();
 }
 
-main(); // Ejecutar el proceso
+main(); // Inicia el proceso
+
 
 
 
