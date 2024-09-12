@@ -106,26 +106,24 @@ function generateSecondLineFromBanlistsOrder() {
   return `#${items}`;
 }
 
-// Función para escribir el archivo final lflist.conf
-function writeFinalLflist(finalLists, originalContent) {
+// Función para escribir el archivo final lflist.conf con la lista del objeto `banlistsOrder`
+function writeFinalLflist(finalLists) {
   const filePath = path.join('scripts', LFLIST_FILE);
-  
-  // Generar la segunda línea del archivo con el objeto banlistsOrder
-  const secondLine = generateSecondLineFromBanlistsOrder();
-  
-  // Insertar la segunda línea en la posición correcta
-  const fileContent = originalContent.split('\n');
-  fileContent.splice(1, 0, secondLine); // Insertar la línea en la posición 2
+  let fileContent = '# Listas Generadas según el orden establecido\n\n';
 
-  // Añadir las listas
+  // Generar la segunda línea con los ítems en el orden del objeto
+  const secondLine = generateSecondLineFromBanlistsOrder();
+  fileContent += secondLine + '\n';
+
+  // Añadir las listas en el mismo orden del objeto
   finalLists.forEach(list => {
-    fileContent.push(`${list.name}`);
+    fileContent += `${list.name}\n`;
     list.content.forEach(line => {
-      fileContent.push(`${line}`);
+      fileContent += `${line}\n`;
     });
   });
 
-  fs.writeFileSync(filePath, fileContent.join('\n'));
+  fs.writeFileSync(filePath, fileContent);
   console.log(`Archivo final lflist.conf creado con las listas ordenadas y segunda línea generada: ${secondLine}`);
 }
 
@@ -168,11 +166,8 @@ function main() {
   // Combinar y ordenar las listas
   const finalLists = combineAndOrderLists(lflistContent, confContent, banlistsOrder);
 
-  // Leer el contenido original del archivo lflist.conf
-  const originalContent = fs.readFileSync(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE), 'utf8');
-
   // Escribir el archivo final lflist.conf
-  writeFinalLflist(finalLists, originalContent);
+  writeFinalLflist(finalLists);
 
   // Clonar el repositorio de destino, mover el archivo y hacer push
   cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
@@ -180,6 +175,7 @@ function main() {
 }
 
 main(); // Inicia el proceso
+
 
 
 
