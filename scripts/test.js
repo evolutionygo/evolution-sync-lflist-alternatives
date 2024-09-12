@@ -138,7 +138,6 @@ function moveAndPush() {
   } else {
     console.log('No hay cambios para subir.');
 }
-}
 
 // Main
 function main() {
@@ -164,36 +163,3 @@ function main() {
 }
 
 main(); // Inicia el proceso
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
