@@ -132,6 +132,7 @@ function moveAndPush() {
   } else {
     console.log('No hay cambios para subir.');
 }
+}
 
 // Main
 function main() {
