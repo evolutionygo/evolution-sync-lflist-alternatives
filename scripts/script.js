@@ -66,7 +66,7 @@ function writeFinalLflist(finalLists) {
 }
 
 
-// Función para leer el archivo lflist.conf y devolver las listas con su contenido
+/*// Función para leer el archivo lflist.conf y devolver las listas con su contenido
 function readLflistWithContent(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
   const lines = data.split('\n');
@@ -84,7 +84,7 @@ function readLflistWithContent(filePath) {
   });
 
   return listsWithContent;
-}
+}*/
 
 // Función para recorrer los archivos .conf en el repositorio de comparación y devolver las listas con su contenido
 function readConfFilesWithContent(confRepoPath) {
