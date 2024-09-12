@@ -38,6 +38,34 @@ function cloneRepo(repoUrl, targetDir) {
   console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
 }
 
+// Función para generar la segunda línea del archivo con los ítems de banlistsOrder
+function generateBanlistsLine() {
+  const items = Object.values(banlistsOrder).map(item => `[${item}]`).join('');
+  return `#${items}`;
+}
+
+// Función para escribir el archivo final lflist.conf con la segunda línea generada
+function writeFinalLflist(finalLists) {
+  const filePath = path.join('scripts', LFLIST_FILE);
+  let fileContent = '# Listas Generadas según el orden establecido\n\n';
+
+  // Generar la segunda línea con los ítems de banlistsOrder
+  const secondLine = generateBanlistsLine();
+  fileContent += `${secondLine}\n\n`;
+
+  // Añadir las listas y su contenido
+  finalLists.forEach(list => {
+    fileContent += `${list.name}\n`;
+    list.content.forEach(line => {
+      fileContent += `${line}\n`;
+    });
+  });
+
+  fs.writeFileSync(filePath, fileContent);
+  console.log(`Archivo final lflist.conf creado con las listas ordenadas y los ítems de banlistsOrder.`);
+}
+
+
 // Función para leer el archivo lflist.conf y devolver las listas con su contenido
 function readLflistWithContent(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
