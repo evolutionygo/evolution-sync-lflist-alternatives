@@ -100,34 +100,23 @@ function combineAndOrderLists(lflistContent, confContent, banlistsOrder) {
   return finalLists;
 }
 
-// Función para generar la segunda línea con los ítems del objeto `banlistsOrder`
-function generateSecondLineFromBanlistsOrder() {
-  const items = Object.values(banlistsOrder).map(item => `[${item}]`).join('');
-  return `#${items}`;
-}
-
 // Función para escribir el archivo final lflist.conf
-function writeFinalLflist(finalLists, originalContent) {
+function writeFinalLflist(finalLists) {
   const filePath = path.join('scripts', LFLIST_FILE);
-  
-  // Generar la segunda línea del archivo con el objeto banlistsOrder
-  const secondLine = generateSecondLineFromBanlistsOrder();
-  
-  // Insertar la segunda línea en la posición correcta
-  const fileContent = originalContent.split('\n');
-  fileContent.splice(1, 0, secondLine); // Insertar la línea en la posición 2
+  let fileContent = '# Listas Generadas según el orden establecido\n\n';
 
-  // Añadir las listas
   finalLists.forEach(list => {
-    fileContent.push(`${list.name}`);
+    fileContent += `${list.name}\n`;
     list.content.forEach(line => {
-      fileContent.push(`${line}`);
+      fileContent += `${line}\n`;
     });
   });
 
-  fs.writeFileSync(filePath, fileContent.join('\n'));
-  console.log(`Archivo final lflist.conf creado con las listas ordenadas y segunda línea generada: ${secondLine}`);
+  fs.writeFileSync(filePath, fileContent);
+  console.log(`Archivo final lflist.conf creado con las listas ordenadas.`);
 }
+
+
 
 // Función para mover y hacer push al repositorio de destino
 function moveAndPush() {
@@ -144,7 +133,7 @@ function moveAndPush() {
     console.log('Cambios subidos al repositorio.');
   } else {
     console.log('No hay cambios para subir.');
-  }
+}
 }
 
 // Main
@@ -162,11 +151,8 @@ function main() {
   // Combinar y ordenar las listas
   const finalLists = combineAndOrderLists(lflistContent, confContent, banlistsOrder);
 
-  // Leer el contenido original del archivo lflist.conf
-  const originalContent = fs.readFileSync(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE), 'utf8');
-
   // Escribir el archivo final lflist.conf
-  writeFinalLflist(finalLists, originalContent);
+  writeFinalLflist(finalLists);
 
   // Clonar el repositorio de destino, mover el archivo y hacer push
   cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
