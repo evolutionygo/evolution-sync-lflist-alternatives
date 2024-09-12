@@ -109,7 +109,7 @@ function generateSecondLineFromBanlistsOrder() {
 // Función para escribir el archivo final lflist.conf con la lista del objeto `banlistsOrder`
 function writeFinalLflist(finalLists) {
   const filePath = path.join('scripts', LFLIST_FILE);
-  let fileContent = '# Listas Generadas según el orden establecido\n\n';
+  let fileContent = '# Listas Generadas según el orden establecido\n';
 
   // Generar la segunda línea con los ítems en el orden del objeto
   const secondLine = generateSecondLineFromBanlistsOrder();
