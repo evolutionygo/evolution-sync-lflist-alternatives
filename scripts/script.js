@@ -6,6 +6,23 @@ const path = require('path');
 const LFLIST_FILE = 'lflist.conf';
 const CURRENT_YEAR = new Date().getFullYear();
 const PREVIOUS_YEAR = CURRENT_YEAR - 1;
+let combinedItems = [];
+
+// Objeto para especificar las listas que deben permanecer y su orden
+const banlistsOrder = {
+  1: "2024.9 TCG",
+  2: "Edison(PreErrata)",
+  3: "HAT",
+  4: "2011.09 Tengu Plant",
+  5: "MD 08.2024",
+  6: "JTP (Original)",
+  7: "GXS-Marzo-2008",
+  8: "2024.05 TDG",
+  9: "2019.10 Eterno",
+  10: "2015.4 Duel Terminal",
+  11: "2008.03 DAD Return",
+  12: "MDC - Evolution S6",
+};
 
 // Obtener el token de las variables de entorno
 const TOKEN = process.env.TOKEN;
@@ -18,144 +35,63 @@ function cloneRepo(repoUrl, targetDir) {
   if (fs.existsSync(targetDir)) {
     fs.rmSync(targetDir, { recursive: true, force: true });
   }
-  try {
-    execSync(`git clone ${repoUrl} ${targetDir}`);
-    console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
-
-    // Verificar si el directorio fue creado correctamente
-    if (fs.existsSync(targetDir)) {
-      console.log(`El directorio ${targetDir} se creó correctamente.`);
-    } else {
-      console.error(`Error: El directorio ${targetDir} no se creó correctamente.`);
-    }
-  } catch (error) {
-    console.error(`Error al clonar el repositorio ${repoUrl}:`, error.message);
-  }
+  execSync(`git clone ${repoUrl} ${targetDir}`);
+  console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
 }
 
-// Función para leer el archivo lflist.conf y devolver las listas
-function readLflist(filePath) {
+// Función para leer los ítems de lflist.conf y guardarlos
+function extractItemsFromLflist(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
-  const firstLine = data.split('\n')[0]; // Leer la primera línea
-  const lists = firstLine.match(/\[[^\]]+\]/g); // Obtener las listas encerradas en []
-  return lists || [];
-}
-
-// Filtrar por año en curso y año anterior si corresponde
-function filterByYear(lists) {
-  const currentYearItems = lists.filter(item => item.includes(CURRENT_YEAR));
-  if (currentYearItems.length <= 2) {
-    const previousYearItems = lists.filter(item => item.includes(PREVIOUS_YEAR));
-    return currentYearItems.concat(previousYearItems);
+  const items = data.match(/^!\S+/gm); // Extraer los ítems que comienzan con "!"
+  if (items) {
+    combinedItems = combinedItems.concat(items); // Agregar los ítems al array global
   }
-  return currentYearItems;
 }
 
-// Función para ordenar las listas
-function sortByDate(lists) {
-  return lists.sort((a, b) => {
-    const dateA = a.match(/\d{4}\.\d+/g)[0]; // Obtener año.mes
-    const dateB = b.match(/\d{4}\.\d+/g)[0];
-    return dateB.localeCompare(dateA); // Ordenar de más reciente a más viejo
-  });
-}
-
-// Función para dar prioridad a TCG en caso de empate
-function prioritizeTCG(sortedLists) {
-  return sortedLists.sort((a, b) => {
-    const hasTCG_A = a.includes('TCG');
-    const hasTCG_B = b.includes('TCG');
-    if (hasTCG_A && !hasTCG_B) return -1;
-    if (!hasTCG_A && hasTCG_B) return 1;
-    return 0;
-  });
-}
-
-// Función para escribir el archivo final lflist.conf
-function writeFinalLflist(mostRecentItem, listItem) {
-  const header = `#[${mostRecentItem}]`;
-  const filePath = path.join('scripts', LFLIST_FILE);
-
-  fs.writeFileSync(filePath, `${header}\n${listItem || ''}`);
-  console.log(`Archivo final lflist.conf creado con el ítem más reciente: ${header}`);
-}
-
-// Función para encontrar la lista correspondiente al ítem más reciente
-function findListForItem(item, lflistData) {
-  const lines = lflistData.split('\n');
-  let startIndex = lines.findIndex(line => line.startsWith(`!${item}`));
-
-  if (startIndex === -1) {
-    console.log(`No se encontró una lista para el ítem: ${item}, intentando añadir 0 al mes...`);
-
-    // Si no encuentra el ítem, intenta añadir un 0 en el mes si el formato es año.mes
-    const itemWithZero = item.replace(/(\d{4})\.(\d)(\b)/, '$1.0$2');  // Añade el 0 si el mes tiene solo 1 dígito
-    startIndex = lines.findIndex(line => line.startsWith(`!${itemWithZero}`));
-
-    if (startIndex === -1) {
-      console.log(`No se encontró una lista para el ítem (ni con el 0 añadido): ${item}`);
-      return null;
-    } else {
-      console.log(`Lista encontrada para el ítem (con 0 añadido): ${itemWithZero}`);
-    }
-  } else {
-    console.log(`Lista encontrada para el ítem ${item}`);
-  }
-
-  // Capturar todas las líneas de la lista hasta el siguiente ítem que comienza con "!"
-  const listItem = [];
-  for (let i = startIndex; i < lines.length; i++) {
-    if (lines[i].startsWith('!') && i !== startIndex) break; // Si comienza otro ítem, detener
-    listItem.push(lines[i]);
-  }
-
-  return listItem.join('\n');
-}
-
-// Función para recorrer los archivos .conf en el repositorio de comparación y listar ítems en orden alfabético
-function listItemsInAlphabeticalOrder(confRepoPath) {
-  if (!fs.existsSync(confRepoPath)) {
-    console.error(`Error: El directorio ${confRepoPath} no existe.`);
-    return;
-  }
-
+// Función para verificar los archivos .conf
+function extractItemsFromConfFiles(confRepoPath) {
   const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
-
-  if (confFiles.length === 0) {
-    console.error('No se encontraron archivos .conf en el directorio de comparación.');
-    return;
-  }
-
-  let items = [];
 
   // Recorrer cada archivo .conf
   confFiles.forEach(file => {
     const filePath = path.join(confRepoPath, file);
     const fileData = fs.readFileSync(filePath, 'utf8');
 
-    // Extraer los ítems que comienzan con "!", incluyendo los que contienen espacios
-    const fileItems = fileData.match(/^!.+/gm);
+    // Extraer los ítems que comienzan con "!"
+    const fileItems = fileData.match(/^!\S+/gm);
     if (fileItems) {
-      // Omitir los ítems que contengan "KS" en su nombre
-      const filteredItems = fileItems.filter(item => !item.includes('KS'));
-
-      // Quitar el "!" y añadir a la lista de ítems
-      items = items.concat(filteredItems.map(item => item.replace(/^!/, '')));
+      combinedItems = combinedItems.concat(fileItems); // Agregar los ítems al array global
     }
   });
-
-  // Ordenar alfabéticamente
-  const sortedItems = items.sort((a, b) => a.localeCompare(b));
-
-  // Log: Imprimir la lista de ítems clonados
-  console.log('Lista de ítems clonados desde comparison-repo:');
-  console.log(sortedItems); // Log para ver la lista clonada
-
-  // Imprimir los ítems ordenados
-  console.log('Ítems de archivos .conf en orden alfabético:');
-  sortedItems.forEach(item => console.log(item));
 }
 
+// Función para ordenar los ítems según el objeto `banlistsOrder`
+function filterAndOrderItems() {
+  const orderedItems = [];
+
+  // Iterar sobre banlistsOrder para mantener solo los ítems en ese orden
+  for (const key in banlistsOrder) {
+    const listName = banlistsOrder[key];
+
+    // Buscar el ítem en la lista combinada
+    const item = combinedItems.find(i => i.includes(listName));
+    if (item) {
+      orderedItems.push(item); // Agregar el ítem en el orden correcto
+    }
+  }
+
+  return orderedItems;
+}
+
+// Función para escribir el archivo final lflist.conf
+function writeFinalLflist(orderedItems) {
+  const header = `# Listas Generadas según el orden establecido\n`;
+  const filePath = path.join('scripts', LFLIST_FILE);
+
+  const content = `${header}\n${orderedItems.join('\n')}`;
+  fs.writeFileSync(filePath, content);
+  console.log(`Archivo final lflist.conf creado y ordenado.`);
+}
 
 // Función para verificar si hay cambios antes de hacer commit
 function hasChanges() {
@@ -172,7 +108,7 @@ function moveAndPush() {
 
   if (hasChanges()) {
     execSync(`git add ${LFLIST_FILE}`);
-    execSync('git commit -m "Update lflist.conf with the latest changes"');
+    execSync('git commit -m "Update lflist.conf with ordered lists"');
     execSync('git pull --rebase origin main');  // Asegurarse de que no haya conflictos
     execSync('git push origin main');
     console.log('Cambios subidos al repositorio.');
@@ -187,47 +123,25 @@ function main() {
   cloneRepo('https://github.com/fallenstardust/YGOMobile-cn-ko-en', 'repo-koishi');
   cloneRepo('https://github.com/termitaklk/lflist', 'comparison-repo');
 
-  // Verificar si el directorio de comparación existe
-  if (!fs.existsSync('comparison-repo')) {
-    console.error('Error: El directorio comparison-repo no se creó correctamente.');
-    process.exit(1);  // Salir con error si no se puede acceder al directorio
-  }
-  
-  // Listar ítems de los archivos .conf en orden alfabético
-  listItemsInAlphabeticalOrder('comparison-repo');
+  // Extraer ítems de lflist.conf
+  extractItemsFromLflist(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
 
-  // Leer el archivo lflist.conf
-  const lflistData = fs.readFileSync(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE), 'utf8');
-  const lists = readLflist(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
+  // Extraer ítems de los archivos .conf
+  extractItemsFromConfFiles('comparison-repo');
 
-  // Filtrar por año en curso y año anterior
-  const filteredLists = filterByYear(lists);
-
-  // Ordenar las listas por fecha
-  const sortedLists = sortByDate(filteredLists);
-
-  // Priorizar TCG si hay empate
-  const prioritizedLists = prioritizeTCG(sortedLists);
-
-  // Obtener el ítem más reciente
-  const mostRecentItem = prioritizedLists[0].replace(/[\[\]]/g, ''); // Sin corchetes
-  console.log(`El ítem más reciente es: ${mostRecentItem}`);
-
-  // Buscar la lista correspondiente al ítem más reciente
-  const listItem = findListForItem(mostRecentItem, lflistData);
+  // Filtrar y ordenar los ítems
+  const orderedItems = filterAndOrderItems();
 
   // Escribir el archivo final lflist.conf
-  writeFinalLflist(mostRecentItem, listItem);
+  writeFinalLflist(orderedItems);
 
   // Clonar el repositorio de destino, mover el archivo y hacer push
   cloneRepo(DEST_REPO_URL, 'koishi-Iflist');
   moveAndPush();
-
-  // Listar ítems de los archivos .conf en orden alfabético
-  listItemsInAlphabeticalOrder('comparison-repo');
 }
 
 main(); // Inicia el proceso
+
 
 
 
