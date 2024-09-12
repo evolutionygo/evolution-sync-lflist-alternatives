@@ -30,7 +30,7 @@ function cloneRepo(repoUrl, targetDir) {
 // Función para leer los ítems de lflist.conf
 function readLflistItems(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
-  return data.match(/^!\S+/gm) || [];
+  return data.match(/^!\[[^\]]+\]/gm) || []; // Asegurarse de capturar ítems con espacios entre corchetes
 }
 
 // Función para leer los ítems de los archivos .conf
@@ -40,9 +40,9 @@ function readConfItems(confRepoPath) {
   confFiles.forEach(file => {
     const filePath = path.join(confRepoPath, file);
     const fileData = fs.readFileSync(filePath, 'utf8');
-    const fileItems = fileData.match(/^!\S+/gm);
+    const fileItems = fileData.match(/^!\[[^\]]+\]/gm); // Capturar ítems completos, incluso con espacios
     if (fileItems) {
-      items = items.concat(fileItems.map(item => item.replace(/^!/, '')));
+      items = items.concat(fileItems.map(item => item.replace(/^!/, ''))); // Eliminar el "!" y mantener el nombre completo
     }
   });
   return items;
@@ -97,6 +97,7 @@ function main() {
 }
 
 main(); // Ejecutar el proceso
+
 
 
 
