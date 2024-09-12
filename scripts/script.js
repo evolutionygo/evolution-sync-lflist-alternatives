@@ -74,14 +74,30 @@ function main() {
   // Combinar ítems de lflist.conf y .conf
   const combinedItems = [...new Set([...lflistItems, ...confItems])];
 
+  // Mostrar la lista de ítems antes de ordenarlas
+  console.log('Lista de ítems antes de ordenar:');
+  console.log(combinedItems);
+
   // Filtrar y ordenar ítems según el objeto banlistsOrder
   const sortedItems = filterAndSortItems(combinedItems);
+
+  // Mostrar la lista de ítems después de ordenarlas
+  console.log('Lista de ítems después de ordenar:');
+  console.log(sortedItems);
+
+  // Mostrar cómo se compara cada ítem con el objeto banlistsOrder
+  console.log('Comparación de ítems con banlistsOrder:');
+  sortedItems.forEach(item => {
+    const order = Object.keys(banlistsOrder).find(key => banlistsOrder[key] === item);
+    console.log(`Ítem: ${item} | Posición en banlistsOrder: ${order}`);
+  });
 
   // Escribir el archivo final lflist.conf
   writeFinalLflist(sortedItems);
 }
 
 main(); // Ejecutar el proceso
+
 
 
 
