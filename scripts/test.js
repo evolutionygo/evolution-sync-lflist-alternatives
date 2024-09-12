@@ -116,11 +116,7 @@ function writeFinalLflist(finalLists) {
   console.log(`Archivo final lflist.conf creado con las listas ordenadas.`);
 }
 
-// Función para verificar si hay cambios antes de hacer commit
-function hasChanges() {
-  const status = execSync('git status --porcelain').toString();
-  return status.trim().length > 0;
-}
+
 
 // Función para mover y hacer push al repositorio de destino
 function moveAndPush() {
@@ -137,6 +133,7 @@ function moveAndPush() {
     console.log('Cambios subidos al repositorio.');
   } else {
     console.log('No hay cambios para subir.');
+}
 }
 
 // Main
@@ -163,3 +160,4 @@ function main() {
 }
 
 main(); // Inicia el proceso
+
