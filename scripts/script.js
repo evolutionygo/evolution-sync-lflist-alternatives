@@ -25,32 +25,41 @@ function cloneRepo(repoUrl, targetDir) {
     fs.rmSync(targetDir, { recursive: true, force: true });
   }
   execSync(`git clone ${repoUrl} ${targetDir}`);
+  console.log(`Clonado el repositorio ${repoUrl} en ${targetDir}`);
 }
 
 // Función para leer los ítems de lflist.conf
 function readLflistItems(filePath) {
   const data = fs.readFileSync(filePath, 'utf8');
-  return data.match(/^!\[[^\]]+\]/gm) || []; // Asegurarse de capturar ítems con espacios entre corchetes
+  console.log('Contenido de lflist.conf:', data); // Mostrar contenido de lflist.conf para depuración
+  const lists = data.match(/^!\[[^\]]+\]/gm); // Capturar ítems con espacios entre corchetes []
+  console.log('Ítems encontrados en lflist.conf:', lists); // Log para depuración
+  return lists || [];
 }
 
 // Función para leer los ítems de los archivos .conf
 function readConfItems(confRepoPath) {
   const confFiles = fs.readdirSync(confRepoPath).filter(file => file.endsWith('.conf'));
+  console.log('Archivos .conf encontrados:', confFiles); // Mostrar archivos .conf encontrados para depuración
   let items = [];
   confFiles.forEach(file => {
     const filePath = path.join(confRepoPath, file);
     const fileData = fs.readFileSync(filePath, 'utf8');
+    console.log(`Contenido del archivo ${file}:`, fileData); // Mostrar contenido de cada archivo .conf para depuración
     const fileItems = fileData.match(/^!\[[^\]]+\]/gm); // Capturar ítems completos, incluso con espacios
     if (fileItems) {
       items = items.concat(fileItems.map(item => item.replace(/^!/, ''))); // Eliminar el "!" y mantener el nombre completo
     }
   });
+  console.log('Ítems encontrados en archivos .conf:', items); // Log para depuración
   return items;
 }
 
 // Función para ordenar y filtrar ítems en función del objeto banlistsOrder
 function filterAndSortItems(items) {
-  return Object.values(banlistsOrder).filter(orderItem => items.includes(orderItem));
+  const sortedItems = Object.values(banlistsOrder).filter(orderItem => items.includes(orderItem));
+  console.log('Ítems después de filtrar y ordenar:', sortedItems); // Log para depuración
+  return sortedItems;
 }
 
 // Función para escribir el archivo final lflist.conf con las listas filtradas y ordenadas
@@ -59,6 +68,7 @@ function writeFinalLflist(sortedItems) {
   const header = "# Listas Generadas según el orden establecido\n";
   const content = sortedItems.map(item => `!${item}`).join('\n');
   fs.writeFileSync(filePath, `${header}${content}`);
+  console.log(`Archivo final lflist.conf creado con los ítems ordenados.`);
 }
 
 // Main
@@ -81,12 +91,7 @@ function main() {
   // Filtrar y ordenar ítems según el objeto banlistsOrder
   const sortedItems = filterAndSortItems(combinedItems);
 
-  // Mostrar la lista de ítems después de ordenarlas
-  console.log('Lista de ítems después de ordenar:');
-  console.log(sortedItems);
-
   // Mostrar cómo se compara cada ítem con el objeto banlistsOrder
-  console.log('Comparación de ítems con banlistsOrder:');
   sortedItems.forEach(item => {
     const order = Object.keys(banlistsOrder).find(key => banlistsOrder[key] === item);
     console.log(`Ítem: ${item} | Posición en banlistsOrder: ${order}`);
@@ -97,8 +102,6 @@ function main() {
 }
 
 main(); // Ejecutar el proceso
-
-
 
 
 
