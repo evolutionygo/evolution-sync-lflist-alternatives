@@ -104,7 +104,7 @@ function combineAndOrderLists(lflistContent, confContent, banlistsOrder) {
 function filterListContent(items) {
   return items.filter(item => {
     // Coincidir con un espacio seguido de "1", "2" o "3"
-    const match = item.match(/\s[123]\b/);
+    const match = item.match(/\s[012]\b/);
     return match; // Incluir solo los que coinciden con " 1", " 2" o " 3"
   });
 }
