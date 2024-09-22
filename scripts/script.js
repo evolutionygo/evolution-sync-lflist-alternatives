@@ -100,11 +100,12 @@ function combineAndOrderLists(lflistContent, confContent, banlistsOrder) {
   return finalLists;
 }
 
-// Función para filtrar el contenido de la lista y excluir las que terminan con " 3"
-function filterListContent(listContent) {
-  return listContent.filter(item => {
-    const match = item.match(/(\d+)\s(\d)$/); // Coincidir con el patrón número + espacio + número
-    return !(match && match[2] === '3'); // Excluir si el segundo número es "3"
+// Función para filtrar los ítems que contienen " 3" en su nombre y eliminar los espacios posteriores
+function filterListContent(items) {
+  return items.filter(item => {
+    // Coincidir con un espacio seguido del número 3, seguido de espacios opcionales
+    const match = item.match(/\s3\s*$/);
+    return !match; // Excluir si coincide con " 3" y cualquier cantidad de espacios adicionales
   });
 }
 
