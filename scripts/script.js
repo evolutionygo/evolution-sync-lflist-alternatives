@@ -100,12 +100,12 @@ function combineAndOrderLists(lflistContent, confContent, banlistsOrder) {
   return finalLists;
 }
 
-// Función para filtrar los ítems que contienen " 3" y cualquier cosa después
+// Función para filtrar los ítems que contienen solo " 1", " 2" o " 3" y eliminar los demás
 function filterListContent(items) {
   return items.filter(item => {
-    // Coincidir con un espacio seguido del número 3 y cualquier carácter después del 3
-    const match = item.match(/\s3\b.*/);
-    return !match; // Excluir si coincide con " 3" seguido de cualquier cosa
+    // Coincidir con un espacio seguido de "1", "2" o "3"
+    const match = item.match(/\s[123]\b/);
+    return match; // Incluir solo los que coinciden con " 1", " 2" o " 3"
   });
 }
 
