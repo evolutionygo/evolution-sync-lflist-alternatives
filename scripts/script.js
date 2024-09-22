@@ -100,14 +100,19 @@ function combineAndOrderLists(lflistContent, confContent, banlistsOrder) {
   return finalLists;
 }
 
-// Función para filtrar los ítems que contienen solo " 1", " 2" o " 3" y eliminar los demás
+// Función para filtrar los ítems que contienen solo " 0", " 1" o " 2" y eliminar los demás
+// Además, eliminar los ítems que contienen " 3" seguido de cualquier texto adicional
 function filterListContent(items) {
   return items.filter(item => {
-    // Coincidir con un espacio seguido de "1", "2" o "3"
+    // Coincidir con un espacio seguido de "0", "1" o "2" (permitidos)
+    // Y eliminar los que contienen un " 3" seguido de cualquier otro texto
     const match = item.match(/\s[012]\b/);
-    return match; // Incluir solo los que coinciden con " 1", " 2" o " 3"
+    const hasThree = item.match(/\s3\b/); // Identificar ítems con " 3"
+    
+    return match && !hasThree; // Incluir solo si es " 0", " 1" o " 2" y no tiene " 3"
   });
 }
+
 
 // Función para generar la segunda línea con los ítems del objeto `banlistsOrder`
 function generateSecondLineFromBanlistsOrder() {
