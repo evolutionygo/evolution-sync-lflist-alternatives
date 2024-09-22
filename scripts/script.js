@@ -91,13 +91,21 @@ function combineAndOrderLists(lflistContent, confContent, banlistsOrder) {
   Object.values(banlistsOrder).forEach(listName => {
     const listKey = `!${listName}`;
     if (lflistContent[listKey]) {
-      finalLists.push({ name: listKey, content: lflistContent[listKey] });
+      finalLists.push({ name: listKey, content: filterListContent(lflistContent[listKey]) });
     } else if (confContent[listKey]) {
-      finalLists.push({ name: listKey, content: confContent[listKey] });
+      finalLists.push({ name: listKey, content: filterListContent(confContent[listKey]) });
     }
   });
 
   return finalLists;
+}
+
+// Función para filtrar el contenido de la lista y excluir las que terminan con " 3"
+function filterListContent(listContent) {
+  return listContent.filter(item => {
+    const match = item.match(/(\d+)\s(\d)$/); // Coincidir con el patrón número + espacio + número
+    return !(match && match[2] === '3'); // Excluir si el segundo número es "3"
+  });
 }
 
 // Función para generar la segunda línea con los ítems del objeto `banlistsOrder`
