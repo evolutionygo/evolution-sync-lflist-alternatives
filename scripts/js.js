@@ -21,13 +21,12 @@ const banlistsOrder = {
   4: "2011.09 Tengu Plant",
   5: "MD 08.2024",
   6: "JTP (Original)",
-  7: "GX-Marzo-2008",
-  8: "2005.4 GOAT",
-  9: "2024.05 TDG",
-  10: "2019.10 Eterno",
-  11: "2015.4 Duel Terminal",
-  12: "2008.03 DAD Return",
-  13: "MDC - Evolution S6",
+  7: "GXS-Marzo-2008",
+  8: "2024.05 TDG",
+  9: "2019.10 Eterno",
+  10: "2015.4 Duel Terminal",
+  11: "2008.03 DAD Return",
+  12: "MDC - Evolution S6",
 };
 
 // Función para clonar un repositorio
@@ -164,12 +163,12 @@ function main() {
   // Leer el archivo lflist.conf con su contenido
   const lflistContent = readLflistWithContent(path.join('repo-koishi', 'mobile', 'assets', 'data', 'conf', LFLIST_FILE));
 
-  // Leer los archivos .conf con su contenido
+  // Leer los archivos .conf de ambos repositorios con su contenido
   const confContent1 = readConfFilesWithContent('comparison-repo');
   const confContent2 = readConfFilesWithContent('ignis-lflist');
 
-// Combinar y ordenar las listas de ambos repositorios
-const finalLists = combineAndOrderLists(lflistContent, confContent1, confContent2, banlistsOrder);
+  // Combinar y ordenar las listas de ambos repositorios
+  const finalLists = combineAndOrderLists(lflistContent, confContent1, confContent2, banlistsOrder);
 
   // Escribir el archivo final lflist.conf
   writeFinalLflist(finalLists);
@@ -180,38 +179,3 @@ const finalLists = combineAndOrderLists(lflistContent, confContent1, confContent
 }
 
 main(); // Inicia el proceso
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
