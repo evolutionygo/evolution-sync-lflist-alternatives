@@ -56,6 +56,7 @@ function readLflistWithContent(filePath) {
   let currentList = null;
 
   lines.forEach((line) => {
+    line = line.trim(); // Eliminar caracteres extra como \r
     if (line.startsWith('!')) {
       currentList = line; // Iniciar una nueva lista
       listsWithContent[currentList] = []; // Crear un array para su contenido
@@ -81,6 +82,7 @@ function readConfFilesWithContent(confRepoPath) {
     let currentList = null;
 
     lines.forEach((line) => {
+      line = line.trim(); // Eliminar caracteres extra como \r
       if (line.startsWith('!')) {
         currentList = line; // Iniciar una nueva lista
         listsWithContent[currentList] = []; // Crear un array para su contenido
