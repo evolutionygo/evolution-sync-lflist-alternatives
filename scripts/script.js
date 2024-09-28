@@ -19,7 +19,7 @@ const banlistsOrder = {
   2: "2024.10",
   3: "2024.07 OCG",
   4: "2005.4 GOAT",
-  5: "2024.07.01 Rush Duel",
+  5: "2024.07.01 Rush Prereleases",
   6: "2023.09 Speed Duel",
   7: "2024.09 Traditional",
   8: "2024.09 World",
