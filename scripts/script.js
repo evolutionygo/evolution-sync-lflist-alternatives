@@ -65,6 +65,7 @@ function readLflistWithContent(filePath) {
     }
   });
 
+  console.log("Listas extraídas de lflist.conf:", Object.keys(listsWithContent));
   return listsWithContent;
 }
 
@@ -90,6 +91,7 @@ function readConfFilesWithContent(confRepoPath) {
     });
   });
 
+  console.log("Listas extraídas de archivos .conf:", Object.keys(listsWithContent));
   return listsWithContent;
 }
 
@@ -109,6 +111,7 @@ function combineAndOrderLists(lflistContent, confContent1, confContent2, banlist
     }
   });
 
+  console.log("Listas combinadas y ordenadas:", finalLists.map(list => list.name));
   return finalLists;
 }
 
