@@ -18,7 +18,7 @@ const banlistsOrder = {
   1: "2024.09 TCG",
   2: "2005.4 GOAT",
   3: "2024.10.01 Rush Prereleases",
-  4: "2023.09 Speed Duel",
+  4: "2024.07 Speed Duel",
   5: "2024.09 Traditional",
   6: "2024.09 World",
   7: "Edison(PreErrata)",
