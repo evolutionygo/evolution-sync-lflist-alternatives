@@ -35,6 +35,7 @@ const banlistsOrder = {
   18: "2024.10 KS",
   19: "2024.9 TCG KS",
   20: "2024.10",
+  21: "JTP (AllCards)",
 };
 
 // Función para clonar un repositorio
