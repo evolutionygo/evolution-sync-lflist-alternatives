@@ -19,7 +19,7 @@ const banlistsOrder = {
   2: "2005.4 GOAT",
   3: "2025.04.01 Rush Prereleases",
   4: "2024.07 Speed Duel",
-  5: "2024.12 Traditional",
+  5: "2025.04 Traditional",
   6: "2025.04 Worlds",
   7: "Edison(PreErrata)",
   8: "2014.4 HAT",
