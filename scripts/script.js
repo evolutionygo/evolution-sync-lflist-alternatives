@@ -15,12 +15,12 @@ const DEST_REPO_URL = `https://${TOKEN}@github.com/termitaklk/koishi-Iflist.git`
 
 // Objeto para especificar las listas que deben permanecer y su orden
 const banlistsOrder = {
-  1: "2025.04 TCG",
+  1: "2025.09 TCG",
   2: "2005.4 GOAT",
-  3: "2025.04.01 Rush Prereleases",
+  3: "2025.07.01 Rush Prereleases",
   4: "2024.07 Speed Duel",
-  5: "2025.04 Traditional",
-  6: "2025.04 Worlds",
+  5: "2025.09 Traditional",
+  6: "2025.09 Worlds",
   7: "Edison(PreErrata)",
   8: "2014.4 HAT",
   9: "JTP (Original)",
@@ -32,7 +32,7 @@ const banlistsOrder = {
   15: "2015.4 Duel Terminal",
   16: "2008.03 DAD Return",
   17: "MDC - Evolution S6",
-  18: "2025.04 OCG",
+  18: "2025.10 OCG",
   19: "2025.03 MD",
   20: "2025.03 MD",
   21: "JTP (AllCards)",
