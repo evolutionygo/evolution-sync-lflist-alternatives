@@ -32,7 +32,7 @@ const banlistsOrder = {
   15: "2015.4 Duel Terminal",
   16: "2008.03 DAD Return",
   17: "MDC - Evolution S6",
-  18: "2026.01 OCG",
+  18: "2026.1",
   19: "2025.03 MD",
   20: "2025.03 MD",
   21: "JTP (AllCards)",
