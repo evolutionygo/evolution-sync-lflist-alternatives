@@ -33,7 +33,7 @@ const banlistsOrder = {
   16: "2008.03 DAD Return",
   17: "MDC - Evolution S6",
   18: "2026.1",
-  19: "2025.03 MD",
+  19: "2026.01 OCG",
   20: "2025.03 MD",
   21: "JTP (AllCards)",
 };
